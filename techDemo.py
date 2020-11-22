@@ -37,18 +37,27 @@ class Game(App):
             app.playSound("HitShortLeft2.wav")
 
     def playSound(app, name):
-        thread = audioDriver.audioThread(1, "Thread-1", name)
+        thread = audioDriver.audioThread(1, "soundThread", name)
         thread.start()
 
     def timerFired(app):
         if(app.runThreads):
-            if(threading.activeCount() < app.maxThreads):
-                thread = camThread(2, "Thread-1", app)
+            if(app.countCamThreads() < app.maxThreads):
+                thread = camThread(2, "camThread", app)
                 thread.start()
         else:
             app.camTick()
-        print(threading.activeCount())
+        print(app.countCamThreads())
+        #print(threading.enumerate()[0])
     
+    def countCamThreads(app):
+        threads = threading.enumerate()
+        count = 0
+        for t in threads:
+            if t.name == "camThread":
+                count += 1
+        return count
+
     def camTick(app):
         output = app.cam.getCoords(app.camThreshold)
         if(output != None):
