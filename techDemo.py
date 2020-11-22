@@ -2,6 +2,7 @@ from cmu_112_graphics import *
 
 import camTracker
 import audioDriver
+import threading
 
 class Game(App):
     def appStarted(app):
@@ -29,9 +30,8 @@ class Game(App):
         
         elif event.key == 's':
             print("s'd")
-            app.audioDriver.playSound("HitLongLeft1")
+            #thread.start_new_thread(app.audioDriver.playSound, ("HitLongLeft1"))
             app.audioDriver.playSound("HitLongLeft2")
-
 
     def timerFired(app):
         app.camTick()

@@ -25,7 +25,7 @@ def filterLight(frame, thresh):
 
     #filter mask
     #https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_imgproc/py_morphological_ops/py_morphological_ops.html
-    kernel = np.ones((5,5),np.uint8)
+    #kernel = np.ones((5,5),np.uint8)
     #opening = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
     opening = mask
     return opening
@@ -55,7 +55,7 @@ def findLargestLight(im):
     cy = int(M['m01']/M['m00'])
     return cx/im.shape[1], cy/im.shape[0]
 
-class camTracker(object): #WORKING ON THIS
+class camTracker(object):
     def __init__(self):
         self.cap = cv2.VideoCapture(0)
         self.debugImage = None
