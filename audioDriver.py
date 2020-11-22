@@ -29,10 +29,8 @@ class audioDriver(object):
                 output=True)
             
     def close(self):
-        # stop stream (4)
         self.stream.stop_stream()
         self.stream.close()
-        # close PyAudio (5)
         self.p.terminate()
     
     def playSound(self, name):

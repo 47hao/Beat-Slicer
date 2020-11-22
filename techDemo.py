@@ -8,7 +8,9 @@ import threading
 class Game(App):
     def appStarted(app):
         app.debugMode = True
-
+        app.maxThreads = 4
+        app.runThreads = True
+        
         app.timerDelay = 5
         app.camThreshold = .9
         app.cam = camTracker.camTracker()
@@ -39,7 +41,13 @@ class Game(App):
         thread.start()
 
     def timerFired(app):
-        app.camTick()
+        if(app.runThreads):
+            if(threading.activeCount() < app.maxThreads):
+                thread = camThread(2, "Thread-1", app)
+                thread.start()
+        else:
+            app.camTick()
+        print(threading.activeCount())
     
     def camTick(app):
         output = app.cam.getCoords(app.camThreshold)
@@ -59,5 +67,17 @@ class Game(App):
 
     def closeApp(app):
         app.audioDriver.close()
+
+#Threading Tutorial:
+#https://www.tutorialspoint.com/python/python_multithreading.htm
+class camThread(threading.Thread):
+    def __init__(self, threadID, name, game):
+        threading.Thread.__init__(self)
+        self.threadID = threadID
+        self.name = name
+        self.game = game
+
+    def run(self):
+        self.game.camTick()
 
 Game(width=900,height=600)

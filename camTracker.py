@@ -20,15 +20,18 @@ def filterLight(frame, thresh):
     
     #mask brightest parts
     #from: pythonprogramming.net/color-filter-python-opencv-tutorial/
-    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-    mask = cv2.inRange(hsv, lower, upper)
+    try:
+        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        mask = cv2.inRange(hsv, lower, upper)
 
-    #filter mask
-    #https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_imgproc/py_morphological_ops/py_morphological_ops.html
-    #kernel = np.ones((5,5),np.uint8)
-    #opening = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
-    opening = mask
-    return opening
+        #filter mask
+        #https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_imgproc/py_morphological_ops/py_morphological_ops.html
+        #kernel = np.ones((5,5),np.uint8)
+        #opening = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+        opening = mask
+        return opening
+    except:
+        return None
 
 #returns (x,y) or None
 def findLargestLight(im):

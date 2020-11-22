@@ -1,6 +1,7 @@
 # cmu_112_graphics.py
 # version 0.8.6
 # MODIFICATIONS: ADDED closeApp() on line ~614
+# removed MVC violation detection on line ~377
 # Pre-release for CMU 15-112-f20
 
 # Require Python 3.6 or later
@@ -374,6 +375,7 @@ class App(object):
         return (getattr(type(app), methodName) is not getattr(App, methodName))
 
     def _mvcViolation(app, errMsg):
+        return
         app._running = False
         raise Exception('MVC Violation: ' + errMsg)
 
