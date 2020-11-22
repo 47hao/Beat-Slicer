@@ -2,13 +2,11 @@ from cmu_112_graphics import *
 
 import camTracker
 import audioDriver
-#import audioThread
+import audioThread
 import threading
 
 class Game(App):
     def appStarted(app):
-        app.audioDriver = audioDriver.AudioDriver()
-        app.playSound("HitShortLeft4.wav")
         app.debugMode = True
         app.maxThreads = 4
         app.runThreads = True
@@ -20,6 +18,8 @@ class Game(App):
         app.xPos = 0
         app.yPos = 0
 
+        app.audioDriver = audioDriver.audioDriver()
+    
     def keyPressed(app, event):
         #controlling camera sensitivity
         if event.key == 'Up':
@@ -37,20 +37,17 @@ class Game(App):
             app.playSound("HitShortLeft2.wav")
 
     def playSound(app, name):
-        #thread = audioDriver.audioThread(1, "Thread-1", name)
-        #thread.start()
-        app.audioDriver.playSound("HitLongLeft1.wav")
-        #pass
+        thread = audioDriver.audioThread(1, "Thread-1", name)
+        thread.start()
 
     def timerFired(app):
-        print("checking stream:", app.audioDriver.checkStreamActive())
         if(app.runThreads):
             if(threading.activeCount() < app.maxThreads):
                 thread = camThread(2, "Thread-1", app)
                 thread.start()
         else:
             app.camTick()
-        #print(threading.activeCount())
+        print(threading.activeCount())
     
     def camTick(app):
         output = app.cam.getCoords(app.camThreshold)

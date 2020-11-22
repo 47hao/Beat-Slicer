@@ -14,114 +14,65 @@ CHUNK = 1024
 
 hitSounds = os.listdir("hitSounds")
 
-class AudioDriver(object):
-
+class audioDriver(object):
     def __init__(self):
-        print('got to this')
         self.p = pyaudio.PyAudio()
-        self.sounds = dict() #upload all sounds
+        self.sounds = dict()
         for fileName in hitSounds:
             self.sounds[fileName] = wave.open("hitSounds/" + fileName, 'rb')  
-        self.currentFrames = None
-        self.wavPositions = []
-        self.playingFiles = []
 
         wf = self.sounds[hitSounds[0]]
-        print('reached here')
         self.stream = self.p.open(format=self.p.get_format_from_width(
                 wf.getsampwidth()),
                 channels=wf.getnchannels(),
                 rate=wf.getframerate(),
-                output=True,
-                stream_callback=self.callback)
-        print('here, too')
-        
-        self.running = True
-        #self.runStream()
-        
-    def runStream(self):
-        thread = audioThread(1, "thread-1", self)
-        #self.stream.start_stream
-        thread.start()
-        '''
-        while(self.running):
-            #time.sleep(0.1)
-            print('wait')
-        '''
-    def checkStreamActive(self):
-        return self.stream.is_active()
-
-    def callback(self, in_data, frame_count, time_info, status):
-        #print('im right here')
-        for i in range(len(self.playingFiles)):
-            #print('hmph')
-            wavPos = self.wavPositions[i]
-            playFile = self.playingFiles[i]
-            wf = self.sounds[playFile]
-            data = wf.readframes(frame_count)
-            #print(data)
-            self.wavPositions[i] += frame_count
-            return (data, pyaudio.paContinue)
-            #print('ok')
-        return (None, pyaudio.paContinue)
-
+                output=True)
+            
     def close(self):
-        print("CLOSING STREAM")
-        self.running = False
         self.stream.stop_stream()
         self.stream.close()
         self.p.terminate()
-        
+    
     def playSound(self, name):
-        wf = self.sounds[hitSounds[0]]
-        stream = self.p.open(format=self.p.get_format_from_width(
-                wf.getsampwidth()),
-                channels=wf.getnchannels(),
-                rate=wf.getframerate(),
-                output=True,
-                stream_callback=self.callback)
+        wf = self.sounds[name]
 
-        print("stream active:", self.stream.is_active())
-        self.playingFiles.append(name)
-        self.wavPositions.append(0)
+        def callback(in_data, frame_count, time_info, status):
+            data = wf.readframes(frame_count)
+            return (data, pyaudio.paContinue)
+
+        # open stream using callback (3)
+        stream = self.p.open(format=self.p.get_format_from_width(wf.getsampwidth()),
+                        channels=wf.getnchannels(),
+                        rate=wf.getframerate(),
+                        output=True,
+                        stream_callback=callback)
+
+        # start the stream (4)
         stream.start_stream()
-        #print(len(self.playingFiles))
-        #wf = self.sounds[name]
 
         # wait for stream to finish (5)
+        while stream.is_active():
+            time.sleep(0.1)
+        
+        stream.stop_stream()
+        stream.close()
+        wf.close()
 
 #THREADING TUTORIAL: https://www.tutorialspoint.com/python/python_multithreading.htm
-
 class audioThread(threading.Thread):
-    def __init__(self, threadID, name, audioDriver):
-        threading.Thread.__init__(self)
-        self.threadID = threadID
-        self.name = name
-        self.driver = audioDriver
-        #self.driver.stream.start_stream()
+   def __init__(self, threadID, name, soundName):
+      threading.Thread.__init__(self)
+      self.threadID = threadID
+      self.name = name
+      self.soundName = soundName
+      self.driver = audioDriver()
 
-    def run(self):
-        self.driver.stream.start_stream()
-        while(self.driver.running): #continues to tick when game ends...
-            #time.sleep(0.1)
-            print(self.driver.running)
-        #self.driver.playSound(self.soundName)
-
-
-class Test(object):
-    def __init__(self):
-        self.driver = AudioDriver()
-    
-    def playSound(self, name):
-        self.driver.playSound(name)
-    
+   def run(self):
+      self.driver.playSound(self.soundName)
 
 def testDriver():
-    testObj = Test()
-    testObj.playSound("HitShortLeft5.wav")
-    '''
     driver = audioDriver()
-    driver.playSound("HitLongLeft1.wav")
-    driver.playSound("HitLongLeft2.wav")
-    '''
-testDriver()
+    driver.playSound("HitLongLeft1")
+    driver.playSound("HitLongLeft2")
+
+#testDriver()
