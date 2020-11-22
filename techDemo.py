@@ -71,7 +71,7 @@ class Game(App):
     def closeApp(app):
         app.audioDriver.close()
 
-#Threading Tutorial: from here
+#Threading Tutorial:
 #https://www.tutorialspoint.com/python/python_multithreading.htm
 class camThread(threading.Thread):
     def __init__(self, threadID, name, game):
