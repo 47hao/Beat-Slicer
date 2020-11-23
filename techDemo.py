@@ -2,14 +2,14 @@ from cmu_112_graphics import *
 
 import camTracker
 import audioDriver
-import audioThread
+#import audioThread
 import threading
 
 class Game(App):
     def appStarted(app):
         app.debugMode = True
         app.maxThreads = 4
-        app.runThreads = True
+        app.runThreads = False
         
         app.timerDelay = 5
         app.camThreshold = .9
