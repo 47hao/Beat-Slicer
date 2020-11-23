@@ -11,7 +11,7 @@ class Grid3d(App):
         
         app.timerDelay = 1
         app.ticks = 0
-        
+
         app.cellSize = (app.height*0.8)/3
         app.cubeSize = app.cellSize
         app.rows = 3
@@ -22,17 +22,17 @@ class Grid3d(App):
         #app.makeTestCubes()
     
     def makeTestCubes(app):
-        app.cubes += [cube.Cube(60,60,500,50)]
-        app.cubes += [cube.Cube(-60,60,500,50)]
-        app.cubes += [cube.Cube(60,-60,500,50)]
-        app.cubes += [cube.Cube(-60,-60,500,50)]
+        app.cubes += [cube.Cube(60,60,500,30)]
+        app.cubes += [cube.Cube(-60,60,500,60)]
+        app.cubes += [cube.Cube(60,-60,500,30)]
+        app.cubes += [cube.Cube(-60,-60,500,60)]
 
     def timerFired(app):
         app.ticks += 1
         if(app.ticks*app.timerDelay%100 == 0):
-            for i in [-1, 1]:
+            for i in [-1, 0, 1]:
                 for j in [-1, 1]:
-                    app.cubes += [cube.Cube(60*i,60*j,2000,60)]
+                    app.cubes += [cube.Cube(60*i,60*j,2000,40)]
 
         app.moveCubes()
 

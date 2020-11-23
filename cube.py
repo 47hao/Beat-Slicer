@@ -3,9 +3,9 @@ from cmu_112_graphics import *
 
 class Cube(object):
     #front, top, left, right, bottom, back
-    FACES = {"front":(0,1,3,2),"top":(4,5,1,0),
+    FACES = {"back":(5,4,6,7),"top":(4,5,1,0),
             "left":(4,0,2,6),"right":(1,5,7,3),
-            "bottom":(2,3,7,6),"back":(5,4,6,7)}
+            "bottom":(2,3,7,6),"front":(0,1,3,2)}
     def __init__(self,x,y,z,sideLength):
         self.x = x
         self.y = y
@@ -48,7 +48,7 @@ class Cube(object):
                     self.vertices[counter] = (
                         (self.x+i*s,self.y+j*s,self.z+k*s))
                     counter += 1
-    
+    '''
     #destructive
     def computeVisibleFaces(self):
         vFaces = {}#self.visibleFaces
@@ -67,7 +67,7 @@ class Cube(object):
             vFaces["left"] = None
         self.visibleFaces = vFaces
         #print(self.visibleFaces)
-    
+    '''
     def draw(self, grid, canvas, wireframe):
         #print("drawn")
 
@@ -96,7 +96,12 @@ class Cube(object):
                 faceList["left"] = None
             faceList["back"] = None
 
+        #KEY PROBLEM: FACE DRAWING BADLY
+        #sometimes only 2 faces are visible...
+        #compare if x>y, then set a face order somehow???
+
         #now draw all faces
+        #MUST DRAW FRONT FACE LAST
         for face in faceList:
             if(faceList[face] != None):
                 converted = (grid.to2d(faceList[face][0]),grid.to2d(faceList[face][1]),
