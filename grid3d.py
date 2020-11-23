@@ -27,13 +27,20 @@ class Grid3d(App):
 
     def timerFired(app):
         app.ticks += 1
+        app.makeSampleCubePattern()
         
-        if(app.ticks*app.timerDelay%100 == 0):
+        app.moveCubes()
+
+    def makeSampleCubePattern(app):
+        if(app.ticks*app.timerDelay%200 == 0):
             for i in [-1, 0, 1]:
                 for j in [-1, 1]:
                     app.cubes += [cube.Cube(60*i,60*j,2000,40)]
-        app.moveCubes()
-
+        if(app.ticks*app.timerDelay%200 == 100):
+            for i in [-1, 1]:
+                for j in [-1, 0, 1]:
+                    app.cubes += [cube.Cube(60*i,60*j,2000,40)]
+                    
     def moveCubes(app):
         for cube in app.cubes:
             cube.move(0,0,-4*app.timerDelay)

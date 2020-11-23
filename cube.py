@@ -12,7 +12,8 @@ class Cube(object):
         self.y = y
         self.z = z
         self.sideLength = sideLength
-        
+        self.outlineWidth = 2
+
         self.vertices = [None]*8
         self.computeVertices()
         self.faces = self.getFaces()
@@ -76,7 +77,7 @@ class Cube(object):
         if(not(wireframe)):
             f = "white"
             o = "black"
-            w = roundHalfUp(0.995**self.z*2)
+            w = roundHalfUp(0.995**self.z*self.outlineWidth)
 
         for face in faceList:
             if wireframe or face in self.visibleFaces:
