@@ -5,39 +5,62 @@ import cube
 class Grid3d(App):
     
     def appStarted(app):
-        app.perspectiveFactor = 0.9982 #the distance scales. How?
+        app.focalLength = 400#min(app.width,app.height)*0.95
+        #400 #camera shenanigans
 
         
-        app.timerDelay = 2
+        app.timerDelay = 1
+        app.ticks = 0
         
         app.cellSize = (app.height*0.8)/3
         app.cubeSize = app.cellSize
         app.rows = 3
         app.cols = 3
         app.deps = 5
-        app.makeTestCubes()
+        
+        app.cubes = []
+        #app.makeTestCubes()
     
     def makeTestCubes(app):
-        app.cubes = []
-        app.cubes += [cube.Cube(60,60,500,60)]
-        app.cubes += [cube.Cube(-60,60,500,60)]
-        app.cubes += [cube.Cube(60,-60,500,60)]
-        app.cubes += [cube.Cube(-60,-60,500,60)]
+        app.cubes += [cube.Cube(60,60,500,50)]
+        app.cubes += [cube.Cube(-60,60,500,50)]
+        app.cubes += [cube.Cube(60,-60,500,50)]
+        app.cubes += [cube.Cube(-60,-60,500,50)]
 
     def timerFired(app):
+        app.ticks += 1
+        if(app.ticks*app.timerDelay%100 == 0):
+            for i in [-1, 1]:
+                for j in [-1, 1]:
+                    app.cubes += [cube.Cube(60*i,60*j,2000,60)]
+
         app.moveCubes()
 
     def moveCubes(app):
         for cube in app.cubes:
-            cube.move(0,0,-2*app.timerDelay)
+            cube.move(0,0,-8*app.timerDelay)
+        app.cleanCubes()
     
+    def cleanCubes(app):
+        for i in range(len(app.cubes)):
+            cube = app.cubes[i]
+            if cube.z < -1*app.focalLength-cube.sideLength:
+                app.cubes.pop(i)
+                print(len(app.cubes))
+            else: #frontmost cubes are lowest indices 
+                return
+                
     def redrawAll(app, canvas):
+        #app.drawBackground(canvas)
         #app.drawGrid(canvas)
         app.drawCubes(canvas)
+    
+    def drawBackground(app, canvas):
+        canvas.create_rectangle(0,0,app.width,app.height,fill="black")
 
-    def drawCubes(app, canvas):
-        for cube in app.cubes:
-            cube.draw(app, canvas)
+    def drawCubes(app, canvas): #draw them in the right order
+        for i in range(len(app.cubes)-1, -1, -1):
+            app.cubes[i].draw(app, canvas, False)
 
     def drawGrid(app, canvas):
         cx, cy = app.width/2, app.height/2
@@ -45,8 +68,8 @@ class Grid3d(App):
             #setup scales and cell sizes
             scaleFront = app.perspectiveFactor**(d*app.cellSize)
             scaleBack = app.perspectiveFactor**((d+1)*app.cellSize)
-            cellSize = app.cellSize * scaleFront#*app.cellSize
-            cellSizeBack = app.cellSize * scaleBack#*app.cellSize
+            cellSize = app.cellSize * scaleFront
+            cellSizeBack = app.cellSize * scaleBack
             #top left x, y, for front and back
             tx, ty = cx-(app.cols/2)*cellSize, cy-(app.rows/2)*cellSize
             tx2, ty2 = cx-(app.cols/2)*cellSizeBack, cy-(app.rows/2)*cellSizeBack
@@ -83,15 +106,23 @@ class Grid3d(App):
         elif event.key == "s":
             app.cube.move(0,0,-1*mvtSpeed)
 
-    def to2d(app, x,y,z):
-        return (app.width/2+x*app.perspectiveFactor**z,
-                app.height/2+y*app.perspectiveFactor**z)
-
+    #Hand calculated method
     def to2d(app, coords):
         (x,y,z) = coords
-        return (app.width/2+x*app.perspectiveFactor**z,
-                app.height/2+y*app.perspectiveFactor**z)
+        f = app.focalLength
+        
+        epsilon = 10**-10
+        if(z <= -1*app.focalLength):
+            z = -1*app.focalLength+epsilon
+        #clips bad z values
+        #SIMPLE (and inaccurate) SOLUTION:
+        #x1 = app.width/2+f*x/z
+        #y1 = app.height/2+f*y/z
 
+        x1 = app.width/2+f*x/(z+f)
+        y1 = app.height/2+f*y/(z+f)
+        return (x1,y1)
+    
     def closeApp(app):
         pass
 

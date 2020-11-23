@@ -15,12 +15,14 @@ class Cube(object):
         self.vertices = [None]*8
         self.computeVertices()
         self.faces = self.getFaces()
-        self.visibleFaces = [None]*3
-        self.computeVisibleFaces()
+        self.visibleFaces = {}
+        
+        #self.computeVisibleFaces()
 
     def getVertices(self):
         return self.vertices
     
+    #dictionary of faces
     def getFaces(self):
         result = {}
         index = 0
@@ -36,7 +38,6 @@ class Cube(object):
         self.y += y
         self.z += z
         self.computeVertices()
-        #self.computeVisibleFaces()
     
     def computeVertices(self):
         s = self.sideLength/2
@@ -48,32 +49,67 @@ class Cube(object):
                         (self.x+i*s,self.y+j*s,self.z+k*s))
                     counter += 1
     
+    #destructive
     def computeVisibleFaces(self):
-        faces = self.getFaces()
-        self.visibleFaces[0] = faces["front"]
+        vFaces = {}#self.visibleFaces
+        vFaces["front"] = self.faces["front"]
         if(self.y >= 0):
-            self.visibleFaces[1] = faces["top"]
+            vFaces["top"] = self.faces["top"]
+            vFaces["bottom"] = None
         else:
-            self.visibleFaces[1] = faces["bottom"]
+            vFaces["bottom"] = self.faces["bottom"]
+            vFaces["top"] = None
         if(self.x >= 0):
-            self.visibleFaces[2] = faces["left"]
+            vFaces["left"] = self.faces["left"]
+            vFaces["right"] = None
         else:
-            self.visibleFaces[2] = faces["right"]
-        print(self.visibleFaces)
+            vFaces["right"] = self.faces["right"]
+            vFaces["left"] = None
+        self.visibleFaces = vFaces
+        #print(self.visibleFaces)
     
-    def draw(self, grid, canvas):
-        faces = self.getFaces()
-        for face in faces:
-            converted = (grid.to2d(faces[face][0]),grid.to2d(faces[face][1]),
-                        grid.to2d(faces[face][2]),grid.to2d(faces[face][3]))
-            canvas.create_polygon(converted,fill="",outline="black")
-    
-    def drawVisible(self, grid, canvas):
-        for face in self.visibleFaces:
-            converted = (grid.to2d(face[0]),grid.to2d(face[1]),
-                        grid.to2d(face[2]),grid.to2d(face[3]))
-            canvas.create_polygon(converted,fill="",outline="black")
-    
+    def draw(self, grid, canvas, wireframe):
+        #print("drawn")
+
+        if(wireframe):
+            faceList = self.getFaces()
+        else:
+            faceList = self.visibleFaces
+        faceList = self.getFaces()
+        
+        f = ""
+        o = "black"
+        w = 1
+
+        if(not(wireframe)): #eliminate unseen faces
+            f = "white"
+            o = "black"
+            w = roundHalfUp(0.995**self.z*2)
+            #eliminate 
+            if(self.y >= 0):
+                faceList["bottom"] = None
+            else:
+                faceList["top"] = None
+            if(self.x >= 0):
+                faceList["right"] = None
+            else:
+                faceList["left"] = None
+            faceList["back"] = None
+
+        #now draw all faces
+        for face in faceList:
+            if(faceList[face] != None):
+                converted = (grid.to2d(faceList[face][0]),grid.to2d(faceList[face][1]),
+                            grid.to2d(faceList[face][2]),grid.to2d(faceList[face][3]))
+                canvas.create_polygon(converted,fill=f,outline=o, width = w)
+
+def roundHalfUp(d):
+    # Round to nearest with ties going away from zero.
+    # You do not need to understand how this function works.
+    import decimal
+    rounding = decimal.ROUND_HALF_UP
+    return int(decimal.Decimal(d).to_integral_value(rounding=rounding))
+
 #cube = Cube(0,0,0,20)
 #print(cube.getFaces())
 
