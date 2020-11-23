@@ -6,6 +6,7 @@ class Cube(object):
     FACES = {"back":(5,4,6,7),"top":(4,5,1,0),
             "left":(4,0,2,6),"right":(1,5,7,3),
             "bottom":(2,3,7,6),"front":(0,1,3,2)}
+
     def __init__(self,x,y,z,sideLength):
         self.x = x
         self.y = y
@@ -15,7 +16,8 @@ class Cube(object):
         self.vertices = [None]*8
         self.computeVertices()
         self.faces = self.getFaces()
-        self.visibleFaces = {}
+        self.visibleFaces = []
+        self.setVisibleFaces()
         
         #self.computeVisibleFaces()
 
@@ -33,6 +35,17 @@ class Cube(object):
             index += 1
         return result
     
+    def setVisibleFaces(self):
+        if self.x > self.sideLength/2:
+            self.visibleFaces.append("left")
+        if self.x < -1*self.sideLength/2:
+            self.visibleFaces.append("right")
+        if self.y > self.sideLength/2:
+            self.visibleFaces.append("top")
+        if self.y < -1*self.sideLength/2:
+            self.visibleFaces.append("bottom")
+        self.visibleFaces.append("front")
+
     def move(self,x,y,z):
         self.x += x
         self.y += y
@@ -48,26 +61,7 @@ class Cube(object):
                     self.vertices[counter] = (
                         (self.x+i*s,self.y+j*s,self.z+k*s))
                     counter += 1
-    '''
-    #destructive
-    def computeVisibleFaces(self):
-        vFaces = {}#self.visibleFaces
-        vFaces["front"] = self.faces["front"]
-        if(self.y >= 0):
-            vFaces["top"] = self.faces["top"]
-            vFaces["bottom"] = None
-        else:
-            vFaces["bottom"] = self.faces["bottom"]
-            vFaces["top"] = None
-        if(self.x >= 0):
-            vFaces["left"] = self.faces["left"]
-            vFaces["right"] = None
-        else:
-            vFaces["right"] = self.faces["right"]
-            vFaces["left"] = None
-        self.visibleFaces = vFaces
-        #print(self.visibleFaces)
-    '''
+
     def draw(self, grid, canvas, wireframe):
         #print("drawn")
 
@@ -76,36 +70,19 @@ class Cube(object):
         else:
             faceList = self.visibleFaces
         faceList = self.getFaces()
-        
         f = ""
         o = "black"
         w = 1
-
-        if(not(wireframe)): #eliminate unseen faces
+        if(not(wireframe)):
             f = "white"
             o = "black"
             w = roundHalfUp(0.995**self.z*2)
-            #eliminate 
-            if(self.y >= 0):
-                faceList["bottom"] = None
-            else:
-                faceList["top"] = None
-            if(self.x >= 0):
-                faceList["right"] = None
-            else:
-                faceList["left"] = None
-            faceList["back"] = None
 
-        #KEY PROBLEM: FACE DRAWING BADLY
-        #sometimes only 2 faces are visible...
-        #compare if x>y, then set a face order somehow???
-
-        #now draw all faces
-        #MUST DRAW FRONT FACE LAST
         for face in faceList:
-            if(faceList[face] != None):
+            if wireframe or face in self.visibleFaces:
                 converted = (grid.to2d(faceList[face][0]),grid.to2d(faceList[face][1]),
                             grid.to2d(faceList[face][2]),grid.to2d(faceList[face][3]))
+
                 canvas.create_polygon(converted,fill=f,outline=o, width = w)
 
 def roundHalfUp(d):
@@ -114,8 +91,5 @@ def roundHalfUp(d):
     import decimal
     rounding = decimal.ROUND_HALF_UP
     return int(decimal.Decimal(d).to_integral_value(rounding=rounding))
-
-#cube = Cube(0,0,0,20)
-#print(cube.getFaces())
 
 

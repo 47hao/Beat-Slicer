@@ -6,9 +6,7 @@ class Grid3d(App):
     
     def appStarted(app):
         app.focalLength = 400#min(app.width,app.height)*0.95
-        #400 #camera shenanigans
 
-        
         app.timerDelay = 1
         app.ticks = 0
 
@@ -29,20 +27,21 @@ class Grid3d(App):
 
     def timerFired(app):
         app.ticks += 1
+        
         if(app.ticks*app.timerDelay%100 == 0):
             for i in [-1, 0, 1]:
                 for j in [-1, 1]:
                     app.cubes += [cube.Cube(60*i,60*j,2000,40)]
-
         app.moveCubes()
 
     def moveCubes(app):
         for cube in app.cubes:
-            cube.move(0,0,-8*app.timerDelay)
+            cube.move(0,0,-4*app.timerDelay)
         app.cleanCubes()
     
     def cleanCubes(app):
-        for i in range(len(app.cubes)):
+        i = 0
+        while i < len(app.cubes):
             cube = app.cubes[i]
             if cube.z < -1*app.focalLength-cube.sideLength:
                 app.cubes.pop(i)
