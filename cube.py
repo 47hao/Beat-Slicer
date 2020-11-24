@@ -86,6 +86,9 @@ class Cube(object):
 
                 canvas.create_polygon(converted,fill=f,outline=o, width = w)
 
+def drawRoundedPoly():
+    pass
+
 def roundHalfUp(d):
     # Round to nearest with ties going away from zero.
     # You do not need to understand how this function works.
