@@ -1,6 +1,7 @@
 
 from cmu_112_graphics import *
 import grid3d
+import poly3d
 import cube
 
 class Game(App):
@@ -10,16 +11,27 @@ class Game(App):
         app.timerDelay = 2
 
         app.cubes = []
+        app.polys = []
         cubeSpeed = 6 #absolute speed, pixels/ms
         app.cubeVel = cubeSpeed*app.timerDelay
 
         app.grid = grid3d.Grid3d(app, app.focalLength)
 
+        #app.testPoly()
         app.testSliceCube()
     
+    def testPoly(app):
+        testCube = cube.Cube((100,50,-20),(0,0,0),30)
+        points = testCube.getPoints()
+        points[3] = (0,-40,0)
+        poly = poly3d.Poly3d((100,50,-20),(0,0,-2),points)
+        app.polys.append(poly)
+
     def testSliceCube(app):
         app.addCube((0,0,-50),(0,0,0))
-        app.cubes[0].sliceCube((0,1,0,0))
+        (poly1, poly2) = app.cubes[0].sliceCube((1,2,0,20))
+        #app.cubes.pop(0)
+        app.polys.extend([poly1,poly2])
 
     def makeTestCubes(app):
         app.addCube((0,0,-10),(0,0,-1*app.cubeVel))
@@ -66,10 +78,15 @@ class Game(App):
         #app.drawGrid(canvas)
         #canvas.create_rectangle(10,10,10+app.cubeSize,10+app.cubeSize)
         app.drawCubes(canvas)
+        app.drawPolys(canvas)
     
     def drawCubes(app, canvas): #draw them in the right order
         for i in range(len(app.cubes)-1, -1, -1):
             app.cubes[i].draw(app.grid, canvas, True)
+    
+    def drawPolys(app, canvas): #draw them in the right order
+        for i in range(len(app.polys)-1, -1, -1):
+            app.polys[i].draw(app.grid, canvas)
 
     def drawBackground(app, canvas):
         canvas.create_rectangle(0,0,app.width,app.height,fill="black")

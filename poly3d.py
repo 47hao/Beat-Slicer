@@ -1,6 +1,7 @@
 
 from cmu_112_graphics import *
 import slice3d
+import grid3d
 import random
 
 class Poly3d(object):

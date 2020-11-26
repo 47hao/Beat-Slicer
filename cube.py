@@ -1,6 +1,7 @@
 
 from cmu_112_graphics import *
 import slice3d
+import grid3d
 import poly3d
 
 class Cube(poly3d.Poly3d):
@@ -90,9 +91,14 @@ class Cube(poly3d.Poly3d):
             canvas.create_polygon(converted,fill=f,outline=o, width = w)
     
     def sliceCube(self, plane):
-        glob = slice3d.localToGlobal(self.pos, self.points)
+        glob = grid3d.localToGlobal(self.pos, self.points)
         print("global points:",glob)
-        print("result:",grid3d.slicePoly(glob,self.EDGES,plane))
+        (points1, points2) = slice3d.slicePoly(glob,self.EDGES,plane)
+        loc1 = grid3d.globalToLocal(self.pos, points1)
+        loc2 = grid3d.globalToLocal(self.pos, points2)
+        poly1 = poly3d.Poly3d(self.pos, (0,0,0), loc1)
+        poly2 = poly3d.Poly3d(self.pos, (0,0,0), loc2)
+        return poly1, poly2
     
 def getCubePoints(sideLen):
     s = sideLen/2
