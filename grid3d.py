@@ -1,101 +1,58 @@
-
-from cmu_112_graphics import *
 import cube
 
-class Grid3d(App):
+class Grid3d(object):
     
-    def appStarted(app):
-        app.focalLength = 400#min(app.width,app.height)*0.95
+    def __init__(self, game, focal):
+        self.focalLength = focal#min(app.width,app.height)*0.95
+        self.game = game
 
-        app.timerDelay = 1
-        app.ticks = 0
-
-        app.startZ = 3000
-        app.gridWidth = min(app.width,app.height)*2/3
-        app.gridSize = app.gridWidth/3
-
-        app.cubeSize = app.gridSize*0.7
-        
-        cubeSpeed = 10 #absolute speed, pixels/ms
-        app.cubeVel = cubeSpeed*app.timerDelay
-        
-        app.cubes = []
+        self.startZ = 3000
+        self.gridWidth = min(game.width,game.height)*2/3
+        self.gridSize = self.gridWidth/3
+        self.cubeSize = self.gridSize*0.7
+        self.cubes = []
         #app.makeTestCubes()
 
-    def getLaneCoords(app, row, col):
-        return row*app.gridSize, col*app.gridSize
-
-    def makeTestCubes(app):
-        app.cubes += [cube.Cube((0,0,-10),(0,0,-1*app.cubeSpeed),app.cubeSize)]
-
-    def timerFired(app):
-        app.ticks += 1
-        app.makeSampleCubePattern()
-        app.moveCubes()
-
-    def makeSampleCubePattern(app):
-        if(app.ticks*app.timerDelay%200 == 0):
-            for row in [-1,0,1]:
-                for col in [-1,1]:
-                    (x,y) = app.getLaneCoords(row, col)
-                    app.cubes += [cube.Cube((x,y,app.startZ),
-                                (0,0,-1*app.cubeVel),app.cubeSize)]
-        if(app.ticks*app.timerDelay%200 == 100):
-            for row in [-1, 1]:
-                for col in [-1, 0, 1]:
-                    (x,y) = app.getLaneCoords(row, col)
-                    app.cubes += [cube.Cube((x,y,app.startZ),
-                                (0,0,-1*app.cubeVel),app.cubeSize)]
+    def getLaneCoords(self, row, col):
+        return row*self.gridSize, col*self.gridSize
                     
-    def moveCubes(app):
-        for cube in app.cubes:
+    def moveCubes(self):
+        for cube in self.cubes:
             cube.move()
-        app.cleanCubes()
+        self.cleanCubes()
     
-    def cleanCubes(app):
+    def cleanCubes(self):
         i = 0
-        while i < len(app.cubes):
-            cube = app.cubes[i]
-            if cube.pos[2] < -1*app.focalLength-cube.sideLength:
-                app.cubes.pop(i)
+        while i < len(self.cubes):
+            cube = self.cubes[i]
+            if cube.pos[2] < -1*self.focalLength-cube.sideLength:
+                self.cubes.pop(i)
                 #print(len(app.cubes))
             else: #frontmost cubes are lowest indices 
                 return
-                
-    def redrawAll(app, canvas):
-        #app.drawBackground(canvas)
-        #app.drawGrid(canvas)
-        #canvas.create_rectangle(10,10,10+app.cubeSize,10+app.cubeSize)
-        app.drawCubes(canvas)
 
-    def drawBackground(app, canvas):
-        canvas.create_rectangle(0,0,app.width,app.height,fill="black")
+    def addCube(self,pos,vel):
+        self.cubes.append(cube.Cube(pos, vel, self.cubeSize))
 
-    def drawCubes(app, canvas): #draw them in the right order
-        for i in range(len(app.cubes)-1, -1, -1):
-            app.cubes[i].draw(app, canvas, True)
-
-    def keyPressed(app, event):
-        pass
+    def drawCubes(self, game, canvas): #draw them in the right order
+        for i in range(len(self.cubes)-1, -1, -1):
+            self.cubes[i].draw(self, canvas, True)
 
     #Hand calculated method
-    def to2d(app, coords):
+    def to2d(self, coords):
         (x,y,z) = coords
-        f = app.focalLength
+        f = self.focalLength
         
         epsilon = 10**-10
-        if(z <= -1*app.focalLength):
-            z = -1*app.focalLength+epsilon
+
+        if(z <= -1*self.focalLength):
+            z = -1*self.focalLength+epsilon
         #clips bad z values
         #SIMPLE (and inaccurate) SOLUTION:
         #x1 = app.width/2+f*x/z
         #y1 = app.height/2+f*y/z
 
-        x1 = app.width/2+f*x/(z+f)
-        y1 = app.height/2+f*y/(z+f)
+        x1 = self.game.width/2+f*x/(z+f)
+        y1 = self.game.height/2+f*y/(z+f)
         return (x1,y1)
     
-    def closeApp(app):
-        pass
-
-Grid3d(width=800, height=600)

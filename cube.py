@@ -20,7 +20,7 @@ class Cube(poly3d.Poly3d):
         self.setFaces()
         self.faceOrder = []
         self.orderFaces()
-        
+
     #dictionary of faces
     def setFaces(self):
         #result = {}
