@@ -18,8 +18,12 @@ class Game(App):
         app.grid = grid3d.Grid3d(app, app.focalLength)
 
         #app.testPoly()
-        app.testSliceCube()
+        
+        app.addCube((100,100,-50),(0,0,0))
     
+    def keyPressed(app, event):
+        app.testSliceCube()
+
     def testPoly(app):
         testCube = cube.Cube((100,50,-20),(0,0,0),30)
         points = testCube.getPoints()
@@ -28,9 +32,12 @@ class Game(App):
         app.polys.append(poly)
 
     def testSliceCube(app):
-        app.addCube((100,100,-50),(0,0,0))
-        (poly1, poly2) = app.cubes[0].sliceCube((1,2,0,300))
-        #app.cubes.pop(0)
+        #polys = app.cubes[0].sliceCube((1,2,0.5,270))
+        polys = app.cubes[0].sliceCube((1,-1.1,0.5,0))
+        if polys == None:
+            return
+        (poly1, poly2) = polys
+        app.cubes.pop(0)
         app.polys.extend([poly1,poly2])
 
     def makeTestCubes(app):
@@ -61,14 +68,23 @@ class Game(App):
     def moveCubes(app):
         for cube in app.cubes:
             cube.move()
+        for poly in app.polys:
+            poly.move()
         app.cleanCubes()
-    
+
     def cleanCubes(app):
         i = 0
         while i < len(app.cubes):
             cube = app.cubes[i]
             if cube.pos[2] < -1*app.focalLength-cube.sideLength:
                 app.cubes.pop(i)
+                #print(len(app.cubes))
+            else: #frontmost cubes are lowest indices 
+                break
+        while i < len(app.polys):
+            poly = app.polys[i]
+            if poly.pos[2] < -1*app.focalLength:
+                app.polys.pop(i)
                 #print(len(app.cubes))
             else: #frontmost cubes are lowest indices 
                 return

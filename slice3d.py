@@ -12,6 +12,8 @@ def slicePoly(points, edges, plane):
             half1.append((x,y,z))
         else:
             half2.append((x,y,z))
+    if half1 == [] or half2 == []:
+        return None
     #print("partitioned ", len(half1), len(half2))
     #then add the intersection points
     for edge in edges: #each edge
@@ -42,9 +44,9 @@ def pointsToPlane(a,b,c):
 #takes in points of vertices, returns point of intersect or none
 def findIntersect(p1, p2, plane):
     if lineIntersectsPlane(p1, p2, plane):
-        print(f"points:{p1},{p2}, plane:{plane}")
+        #print(f"points:{p1},{p2}, plane:{plane}")
         line = lineFromPoints(p1, p2)
-        print("intersect:", linePlaneIntersect(line, plane))
+        #print("intersect:", linePlaneIntersect(line, plane))
         return linePlaneIntersect(line, plane)
     else:
         return None

@@ -23,6 +23,8 @@ class Cube(poly3d.Poly3d):
         self.faceOrder = []
         self.orderFaces()
 
+        self.sliceVel = 0.3
+
     #dictionary of faces
     def setFaces(self):
         #result = {}
@@ -92,14 +94,28 @@ class Cube(poly3d.Poly3d):
     
     def sliceCube(self, plane):
         glob = grid3d.localToGlobal(self.pos, self.points)
-        print("global points:",glob)
-        (points1, points2) = slice3d.slicePoly(glob,self.EDGES,plane)
+        #print("global points:",glob)
+        sliced = slice3d.slicePoly(glob,self.EDGES,plane)
+        if sliced == None:
+            return None
+        (points1, points2) = sliced
         loc1 = grid3d.globalToLocal(self.pos, points1)
         loc2 = grid3d.globalToLocal(self.pos, points2)
-        poly1 = poly3d.Poly3d(self.pos, (0,0,0), loc1)
-        poly2 = poly3d.Poly3d(self.pos, (0,0,0), loc2)
+        #get velocity
+        (dx, dy, dz) = self.vel
+        (i0,j0,k0,d) = plane
+        (i1,j1,k1) = getUnitVector(i0,j0,k0)
+        v = self.sliceVel
+        vel1 = (dx+i1*v, dy+j1*v, dz+k1*v)
+        vel2 = (dx-i1*v, dy-j1*v, dz-k1*v)
+        poly1 = poly3d.Poly3d(self.pos, vel1, loc1)
+        poly2 = poly3d.Poly3d(self.pos, vel2, loc2)
         return poly1, poly2
-    
+
+def getUnitVector(i,j,k):
+    d = (i**2+j**2+k**2)**0.5
+    return (i/d, j/d, k/d)
+
 def getCubePoints(sideLen):
     s = sideLen/2
     result = []
