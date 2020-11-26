@@ -15,20 +15,18 @@ class Grid3d(App):
         app.gridSize = app.gridWidth/3
 
         app.cubeSize = app.gridSize*0.7
-        app.cubeSpeed = 10
+        
+        cubeSpeed = 10 #absolute speed, pixels/ms
+        app.cubeVel = cubeSpeed*app.timerDelay
         
         app.cubes = []
         #app.makeTestCubes()
-        
 
     def getLaneCoords(app, row, col):
         return row*app.gridSize, col*app.gridSize
 
     def makeTestCubes(app):
-        app.cubes += [cube.Cube(0,0,-10,app.cubeSize)]
-        #app.cubes += [cube.Cube(-60,60,500,60)]
-        #app.cubes += [cube.Cube(60,-60,500,30)]
-        #app.cubes += [cube.Cube(-60,-60,500,60)]
+        app.cubes += [cube.Cube((0,0,-10),(0,0,-1*app.cubeSpeed),app.cubeSize)]
 
     def timerFired(app):
         app.ticks += 1
@@ -40,23 +38,25 @@ class Grid3d(App):
             for row in [-1,0,1]:
                 for col in [-1,1]:
                     (x,y) = app.getLaneCoords(row, col)
-                    app.cubes += [cube.Cube(x,y,app.startZ,app.cubeSize)]
+                    app.cubes += [cube.Cube((x,y,app.startZ),
+                                (0,0,-1*app.cubeVel),app.cubeSize)]
         if(app.ticks*app.timerDelay%200 == 100):
             for row in [-1, 1]:
                 for col in [-1, 0, 1]:
                     (x,y) = app.getLaneCoords(row, col)
-                    app.cubes += [cube.Cube(x,y,app.startZ,app.cubeSize)]
+                    app.cubes += [cube.Cube((x,y,app.startZ),
+                                (0,0,-1*app.cubeVel),app.cubeSize)]
                     
     def moveCubes(app):
         for cube in app.cubes:
-            cube.move(0,0,-1*app.cubeSpeed*app.timerDelay)
+            cube.move()
         app.cleanCubes()
     
     def cleanCubes(app):
         i = 0
         while i < len(app.cubes):
             cube = app.cubes[i]
-            if cube.z < -1*app.focalLength-cube.sideLength:
+            if cube.pos[2] < -1*app.focalLength-cube.sideLength:
                 app.cubes.pop(i)
                 #print(len(app.cubes))
             else: #frontmost cubes are lowest indices 
@@ -76,19 +76,7 @@ class Grid3d(App):
             app.cubes[i].draw(app, canvas, True)
 
     def keyPressed(app, event):
-        mvtSpeed = 5
-        if event.key == "Up":
-            app.cube.move(0,-1*mvtSpeed,0)
-        elif event.key == "Down":
-            app.cube.move(0,1*mvtSpeed,0)
-        elif event.key == "Left":
-            app.cube.move(-1*mvtSpeed,0,0)
-        elif event.key == "Right":
-            app.cube.move(1*mvtSpeed,0,0)
-        elif event.key == "w":
-            app.cube.move(0,0,1*mvtSpeed)
-        elif event.key == "s":
-            app.cube.move(0,0,-1*mvtSpeed)
+        pass
 
     #Hand calculated method
     def to2d(app, coords):
@@ -109,7 +97,5 @@ class Grid3d(App):
     
     def closeApp(app):
         pass
-
-
 
 Grid3d(width=800, height=600)
