@@ -8,7 +8,8 @@ class Cube(poly3d.Poly3d):
     FACES = {"back":(5,4,6,7),"top":(4,5,1,0),
             "left":(4,0,2,6),"right":(1,5,7,3),
             "bottom":(2,3,7,6),"front":(0,1,3,2)}
-    EDGES = {(0,1),(1,3),(3,2),(2,0),(0,4),(2,6),(1,5),(3,7)}
+    EDGES = {(0,1),(1,3),(3,2),(2,0),(0,4),(2,6),(1,5),(3,7),
+            (4,5),(5,7),(7,6),(6,4)}
 
     def __init__(self,pos,vel,sideLength):
         self.sideLength = sideLength
@@ -80,13 +81,18 @@ class Cube(poly3d.Poly3d):
         #reassemble/reorder faceList?
         c = self.pos #centroid
         for faceName in self.faceOrder:
-            globPoints = slice3d.localToGlobal(c,self.faces[faceName])
+            globPoints = grid3d.localToGlobal(c,self.faces[faceName])
             #if wireframe or face in self.visibleFaces:
                 #localToGlobal these
             converted = []
             for p in globPoints:
                 converted.append(grid.to2d(p))
             canvas.create_polygon(converted,fill=f,outline=o, width = w)
+    
+    def sliceCube(self, plane):
+        glob = slice3d.localToGlobal(self.pos, self.points)
+        print("global points:",glob)
+        print("result:",grid3d.slicePoly(glob,self.EDGES,plane))
     
 def getCubePoints(sideLen):
     s = sideLen/2
@@ -119,5 +125,5 @@ def testSlicePoly():
     testCube = Cube((0,0,0),(0,0,0),30)
     print(slice3d.slicePoly(testCube.getPoints(),testCube.EDGES,(0,0,1,2)))
 
-testSlicePoly()
+#testSlicePoly()
 #testFuncs()

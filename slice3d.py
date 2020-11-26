@@ -1,24 +1,8 @@
 import numpy
 
-#center of mass, use it to find global
-def localToGlobal(centroid,points):
-    #print(points)
-    #print("type:", type(points))
-    (x,y,z) = centroid
-    result = []
-    for (x0,y0,z0) in points:
-        result.append((x0+x,y0+y,z0+z))
-    return result
-
-#center of mass, shift points to it
-def globalToLocal(centroid,points):
-    (x,y,z) = centroid
-    result = []
-    for (x0,y0,z0) in points:
-        result.append((x0-x,y0-y,z0-z))
-    return result
-
 def slicePoly(points, edges, plane):
+    print("edges given:", len(edges))
+    print("slicing poly with ", len(edges))
     half1 = []
     half2 = []
     (a,b,c,d) = plane
@@ -28,7 +12,7 @@ def slicePoly(points, edges, plane):
             half1.append((x,y,z))
         else:
             half2.append((x,y,z))
-
+    print("partitioned ", len(half1), len(half2))
     #then add the intersection points
     for edge in edges: #each edge
         (index1, index2) = edge
@@ -37,6 +21,7 @@ def slicePoly(points, edges, plane):
         if(intersect != None):
             half1.append(intersect)
             half2.append(intersect)
+    print("after adding intersects", len(half1), len(half2))
     return half1, half2
 
 #Find plane equation in form: ax+by+cz = 1
@@ -105,6 +90,10 @@ def testFindIntersect():
     p2 = (0,0,-1)
     plane = (0,0,1,0)
     assert(findIntersect(p1, p2, plane) == (0,0,0))
+    p1 = (0,0,-1)
+    p2 = (0,0,1)
+    plane = (0,0,1,0)
+    assert(findIntersect(p1, p2, plane) == (0,0,0))
     p1 = (0,0,1)
     p2 = (0,0,5)
     plane = (0,0,1,0)
@@ -122,4 +111,4 @@ def testFindIntersect():
 
 
 #testPointsToPlane()
-#testFindIntersect()
+testFindIntersect()
