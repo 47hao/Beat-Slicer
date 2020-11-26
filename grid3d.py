@@ -10,40 +10,46 @@ class Grid3d(App):
         app.timerDelay = 1
         app.ticks = 0
 
-        app.cellSize = (app.height*0.8)/3
-        app.cubeSize = app.cellSize
-        app.rows = 3
-        app.cols = 3
-        app.deps = 5
+        app.startZ = 3000
+        app.gridWidth = min(app.width,app.height)*2/3
+        app.gridSize = app.gridWidth/3
+
+        app.cubeSize = app.gridSize*0.7
+        app.cubeSpeed = 10
         
         app.cubes = []
         #app.makeTestCubes()
-    
+        
+
+    def getLaneCoords(app, row, col):
+        return row*app.gridSize, col*app.gridSize
+
     def makeTestCubes(app):
-        app.cubes += [cube.Cube(60,60,500,30)]
-        app.cubes += [cube.Cube(-60,60,500,60)]
-        app.cubes += [cube.Cube(60,-60,500,30)]
-        app.cubes += [cube.Cube(-60,-60,500,60)]
+        app.cubes += [cube.Cube(0,0,-10,app.cubeSize)]
+        #app.cubes += [cube.Cube(-60,60,500,60)]
+        #app.cubes += [cube.Cube(60,-60,500,30)]
+        #app.cubes += [cube.Cube(-60,-60,500,60)]
 
     def timerFired(app):
         app.ticks += 1
         app.makeSampleCubePattern()
-        
         app.moveCubes()
 
     def makeSampleCubePattern(app):
         if(app.ticks*app.timerDelay%200 == 0):
-            for i in [-1, 0, 1]:
-                for j in [-1, 1]:
-                    app.cubes += [cube.Cube(60*i,60*j,2000,40)]
+            for row in [-1,0,1]:
+                for col in [-1,1]:
+                    (x,y) = app.getLaneCoords(row, col)
+                    app.cubes += [cube.Cube(x,y,app.startZ,app.cubeSize)]
         if(app.ticks*app.timerDelay%200 == 100):
-            for i in [-1, 1]:
-                for j in [-1, 0, 1]:
-                    app.cubes += [cube.Cube(60*i,60*j,2000,40)]
+            for row in [-1, 1]:
+                for col in [-1, 0, 1]:
+                    (x,y) = app.getLaneCoords(row, col)
+                    app.cubes += [cube.Cube(x,y,app.startZ,app.cubeSize)]
                     
     def moveCubes(app):
         for cube in app.cubes:
-            cube.move(0,0,-4*app.timerDelay)
+            cube.move(0,0,-1*app.cubeSpeed*app.timerDelay)
         app.cleanCubes()
     
     def cleanCubes(app):
@@ -52,51 +58,23 @@ class Grid3d(App):
             cube = app.cubes[i]
             if cube.z < -1*app.focalLength-cube.sideLength:
                 app.cubes.pop(i)
-                print(len(app.cubes))
+                #print(len(app.cubes))
             else: #frontmost cubes are lowest indices 
                 return
                 
     def redrawAll(app, canvas):
         #app.drawBackground(canvas)
         #app.drawGrid(canvas)
+        #canvas.create_rectangle(10,10,10+app.cubeSize,10+app.cubeSize)
         app.drawCubes(canvas)
-    
+
     def drawBackground(app, canvas):
         canvas.create_rectangle(0,0,app.width,app.height,fill="black")
 
     def drawCubes(app, canvas): #draw them in the right order
         for i in range(len(app.cubes)-1, -1, -1):
-            app.cubes[i].draw(app, canvas, False)
+            app.cubes[i].draw(app, canvas, True)
 
-    def drawGrid(app, canvas):
-        cx, cy = app.width/2, app.height/2
-        for d in range(app.deps):
-            #setup scales and cell sizes
-            scaleFront = app.perspectiveFactor**(d*app.cellSize)
-            scaleBack = app.perspectiveFactor**((d+1)*app.cellSize)
-            cellSize = app.cellSize * scaleFront
-            cellSizeBack = app.cellSize * scaleBack
-            #top left x, y, for front and back
-            tx, ty = cx-(app.cols/2)*cellSize, cy-(app.rows/2)*cellSize
-            tx2, ty2 = cx-(app.cols/2)*cellSizeBack, cy-(app.rows/2)*cellSizeBack
-            for r in range(app.rows):
-                for c in range(app.cols):
-                    #front square   
-                    xf0, yf0 = tx+c*cellSize, ty+r*cellSize
-                    xf1, yf1 = xf0+cellSize, yf0+cellSize
-                    canvas.create_rectangle(xf0, yf0, xf1, yf1)
-                    xb0, yb0 = tx2+c*cellSizeBack, ty2+r*cellSizeBack
-                    xb1, yb1 = xb0+cellSizeBack, yb0+cellSizeBack
-                    canvas.create_rectangle(xb0, yb0, xb1, yb1)
-                    #lists of points for sides drawing
-                    pf = [(xf0, yf0),(xf1, yf0),(xf1,yf1),(xf0,yf1)] #clockwise front coords
-                    pb = [(xb0, yb0),(xb1, yb0),(xb1,yb1),(xb0,yb1)] #clockwise back coords
-                    for i in range(4):
-                        pass
-                        canvas.create_polygon(pf[i-1],pf[i],pb[i],pb[i-1],
-                                            fill="",outline="black")
-                    #draw trapezoids
-    
     def keyPressed(app, event):
         mvtSpeed = 5
         if event.key == "Up":
@@ -131,5 +109,7 @@ class Grid3d(App):
     
     def closeApp(app):
         pass
+
+
 
 Grid3d(width=800, height=600)

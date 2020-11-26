@@ -2,7 +2,7 @@
 from cmu_112_graphics import *
 import slice3d
 
-class Cube(object):
+class Poly3d(object):
     #front, top, left, right, bottom, back
     FACES = {"back":(5,4,6,7),"top":(4,5,1,0),
             "left":(4,0,2,6),"right":(1,5,7,3),
