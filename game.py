@@ -28,8 +28,8 @@ class Game(App):
         app.polys.append(poly)
 
     def testSliceCube(app):
-        app.addCube((0,0,-50),(0,0,0))
-        (poly1, poly2) = app.cubes[0].sliceCube((1,2,0,20))
+        app.addCube((100,100,-50),(0,0,0))
+        (poly1, poly2) = app.cubes[0].sliceCube((1,2,0,300))
         #app.cubes.pop(0)
         app.polys.extend([poly1,poly2])
 
