@@ -24,7 +24,47 @@ def slicePoly(points, edges, plane):
             half1.append(intersect)
             half2.append(intersect)
     #print("after adding intersects", len(half1), len(half2))
-    return half1, half2
+    order1, order2 = lexicoOrder(half1), lexicoOrder(half2)
+    result1, result2 = [],[]
+    for i in order1:
+        result1.append(half1[i])
+    for i in order2:
+        result2.append(half2[i])
+    #print("slicing results:", result1, result2)
+    return result1, result2
+
+def lexicoOrder(points):
+    result = []
+    for i in range(len(points)):
+        point = points[i]
+        if result == []:
+            result.append(i)
+        else:
+            j = 0
+            while  j < len(result) and lexiLess(points[result[j]], points[i]):
+                j += 1
+            if j == len(result):
+                result.append(i)
+            else:
+                result.insert(j,i)
+    return result
+
+def lexiLess(a,b):
+    if a[2] < b[2]: #z is less than
+        return True
+    elif a[2] == b[2] and a[1] < b[1]:
+        return True
+    elif a[2] == b[2] and a[1] == b[1] and a[0] < b[0]:
+        return True
+    else:
+        return False
+
+def testLexiOrder():
+    points = [(0, 0, 0), (1, 0, 0), [1, 1, 0], [0, 1, 0],
+            [0, 0, 1], [1, 0, 1], [1, 1, 1], [0, 1, 1], ]
+    print(lexicoOrder(points))
+
+#testLexiOrder()
 
 #Find plane equation in form: ax+by+cz = 1
 def pointsToPlane(a,b,c): 
@@ -116,7 +156,6 @@ def testFindIntersect():
     plane = (0,1,0,0)
     #print(findIntersect(p1, p2, plane))
     print("Passed!")
-
 
 #testPointsToPlane()
 #testFindIntersect()

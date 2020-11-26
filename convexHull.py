@@ -9,8 +9,12 @@ def getHull(points):
     pts = np.array(points)
     hull = ConvexHull(pts)
     faces = np.ndarray.tolist(hull.simplices)
-    print("faces merged:", mergeFaces(faces, points))
-    return mergeFaces(faces, points)
+    #merge a couple times
+    #for i in range(3):
+        #faces = mergeFaces(faces,points)
+    result = mergeFaces(mergeFaces(faces, points),points)
+    print("merged faces:", result)
+    return result
 
 #completely self written code
 def mergeFaces(faces, points):
@@ -19,7 +23,7 @@ def mergeFaces(faces, points):
     while i < len(faces):
         if i >= len(faces)-1:
             result.append(faces[i])
-        elif numsInCommon(faces[i], faces[i+1]) == 2:
+        elif numsInCommon(faces[i], faces[i+1]) >= 2:
             #could be coplanar, do the check
             f = faces[i] #(2,1,0) or some triplet of indices
             p1, p2, p3 = points[f[0]],points[f[1]],points[f[2]]
@@ -27,7 +31,7 @@ def mergeFaces(faces, points):
             #find the odd point to check
             uniquePoint2 = oddNumOut(faces[i],faces[i+1])
             (x,y,z) = points[uniquePoint2]
-            if(a*x+b*y+c*z == d):
+            if(almostEqual(a*x+b*y+c*z, d)):
                 #face = reorderPoints(faces[i], points)
                 #find opposite edge
                 uniquePoint1 = oddNumOut(faces[i+1],faces[i]) 
@@ -45,6 +49,9 @@ def mergeFaces(faces, points):
         i += 1
     return result
 
+def almostEqual(d1, d2):
+    epsilon = 10**-5
+    return (abs(d2 - d1) < epsilon)
 #input: set of points
 #- find the plane they're on
 #- project them onto plane
@@ -91,6 +98,10 @@ def testHull():
     points = [(0, 0, 0), (1, 0, 0), [1, 1, 0], [0, 1, 0],
             [0, 0, 1], [1, 0, 1], [1, 1, 1], [0, 1, 1], ]
     print("cube:", getHull(points))
+
+    points = [(0, 0, 0), (1, 0, 0), (0,1,0), (1,1,0),
+            [0, 0, 1], (1, 0, 1), (0, 1, 1), (1, 1, 1), ]
+    print("lexiCube:", getHull(points))
 
     points = [(0, 0, 0), (1, 0, 0), [1, 0.5, 0], [0, 1, 0],
             [0, 0, 1], [1, 0, 1], [1, .5, 1], [0, 1, 1], ]

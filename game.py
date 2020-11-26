@@ -18,7 +18,6 @@ class Game(App):
         app.grid = grid3d.Grid3d(app, app.focalLength)
 
         #app.testPoly()
-        
         app.addCube((100,100,-50),(0,0,0))
     
     def keyPressed(app, event):
