@@ -17,35 +17,35 @@ def getHull(points):
     return result
 
 #completely self written code
-def mergeFaces(faces, points):
+def mergeFaces(inputFaces, points):
+    faces = copy.deepcopy(inputFaces)
     result = []
     i = 0
     while i < len(faces):
-        if i >= len(faces)-1:
-            result.append(faces[i])
-        elif numsInCommon(faces[i], faces[i+1]) >= 2:
-            #could be coplanar, do the check
-            f = faces[i] #(2,1,0) or some triplet of indices
-            p1, p2, p3 = points[f[0]],points[f[1]],points[f[2]]
-            (a,b,c,d) = slice3d.pointsToPlane(p1,p2,p3) #plane coeffs
-            #find the odd point to check
-            uniquePoint2 = oddNumOut(faces[i],faces[i+1])
-            (x,y,z) = points[uniquePoint2]
-            if(almostEqual(a*x+b*y+c*z, d)):
-                #face = reorderPoints(faces[i], points)
-                #find opposite edge
-                uniquePoint1 = oddNumOut(faces[i+1],faces[i]) 
-                oppositePointIndex = faces[i].index(uniquePoint1)
-                placeIndex = (oppositePointIndex+2)%(len(faces[i]))
-                addedFace = copy.copy(faces[i])
-                addedFace.insert(placeIndex,uniquePoint2)
-                result.append(addedFace)
-                i += 1 #extra hop for the second face merged
-            else:
-                result.append(faces[i])
-        else:
-            #cannot be coplanar, no two shared points
-            result.append(faces[i])
+        merged = False
+        for j in range(len(faces)):
+            if i != j and numsInCommon(faces[i], faces[j]) >= 2:
+                #these faces are touching
+                #find the plane of the first face:
+                f1 = faces[i] #(2,1,0), indices of face coords
+                p1, p2, p3 = points[f1[0]],points[f1[1]],points[f1[2]]
+                (a,b,c,d) = slice3d.pointsToPlane(p1,p2,p3) #plane coeffs
+                #find the odd point to check
+                uniquePoint2 = oddNumOut(faces[i],faces[j])
+                (x,y,z) = points[uniquePoint2]
+                if(almostEqual(a*x+b*y+c*z, d)):
+                    #face = reorderPoints(faces[i], points)
+                    #find opposite edge
+                    uniquePoint1 = oddNumOut(faces[j],faces[i]) 
+                    oppositePointIndex = faces[i].index(uniquePoint1)
+                    placeIndex = (oppositePointIndex+2)%(len(faces[i]))
+                    addedFace = copy.copy(faces[i])
+                    addedFace.insert(placeIndex,uniquePoint2)
+                    result.append(addedFace)
+                    i += 1 #extra hop for the second face merged
+                    merged = True
+        if not(merged):
+            result.append(faces.pop(i))
         i += 1
     return result
 
@@ -120,7 +120,7 @@ def testHull():
     points = [(0, 0, 0), (1, 0, 0), [1,1,0],[0, 1, 0],
             [0, 0, 1],[0,1,1]]
     print("triPrism:", getHull(points))
-#testHull()
+testHull()
 
 def testHelpers():
     print("testing numsInCommon...", end="")
