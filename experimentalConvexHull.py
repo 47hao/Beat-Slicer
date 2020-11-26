@@ -10,36 +10,39 @@ def getHull(points):
     hull = ConvexHull(pts)
     faces = np.ndarray.tolist(hull.simplices)
     #merge a couple times
-    #for i in range(3):
-        #faces = mergeFaces(faces,points)
-    result = mergeFaces(faces, points)
+    for i in range(3):
+        faces = mergeFaces(faces,points)
+    result = mergeFaces(mergeFaces(faces, points),points)
     print("merged faces:", result)
-    return result
+    return faces
 
 #completely self written code
 def mergeFaces(faces, points):
     result = []
+    '''
     i = 0
     while i < len(faces):
         if i >= len(faces)-1:
             result.append(faces[i])
-        elif numsInCommon(faces[i], faces[i+1]) >= 2:
-            #could be coplanar, do the check
+        #only bother checking if there's shared edge
+        elif countNumsInCommon(faces[i], faces[i+1]) >= 2:
+            #MERGE QUADRILATERALS?
             f = faces[i] #(2,1,0) or some triplet of indices
             p1, p2, p3 = points[f[0]],points[f[1]],points[f[2]]
             (a,b,c,d) = slice3d.pointsToPlane(p1,p2,p3) #plane coeffs
             #find the odd point to check
-            uniquePoint2 = oddNumOut(faces[i],faces[i+1])
-            (x,y,z) = points[uniquePoint2]
+
+            #check if coplanar:
+            uniquePoints2 = pointsNotInCommon(faces[i],faces[i+1])
+            (x,y,z) = points[uniquePoints2[0]]
             if(almostEqual(a*x+b*y+c*z, d)):
                 #face = reorderPoints(faces[i], points)
                 #find opposite edge
-                uniquePoint1 = oddNumOut(faces[i+1],faces[i]) 
-                oppositePointIndex = faces[i].index(uniquePoint1)
-                placeIndex = (oppositePointIndex+2)%(len(faces[i]))
-                addedFace = copy.copy(faces[i])
-                addedFace.insert(placeIndex,uniquePoint2)
-                result.append(addedFace)
+                uniquePoints1 = pointsNotInCommon(faces[i+1],faces[i]) 
+                lastUniqueIndex1 = faces[i].index(uniquePoints1[len(uniquePoints1)-1])#index of last unique point
+                placeIndex = (lastUniqueIndex1+2)%(len(faces[i]))
+                resultFace = faces[i][0:placeIndex] + uniquePoints2 + faces[i][placeIndex:]
+                result.append(resultFace)
                 i += 1 #extra hop for the second face merged
             else:
                 result.append(faces[i])
@@ -47,6 +50,57 @@ def mergeFaces(faces, points):
             #cannot be coplanar, no two shared points
             result.append(faces[i])
         i += 1
+    return result
+    '''
+    #start with a face
+    #check if any face touching it is coplanar
+    #if it is, merge the faces together
+    #move on
+    #PROBLEM: FACES STAY IN THE FACES ARRAY AFTER HAVING BEEN MERGED
+    
+    i = 0
+    while i < len(faces):
+        if i >= len(faces)-1:
+            result.append(faces[i])
+        #only bother checking if there's shared edge
+        merged = False
+        for j in range(i+1,len(faces)):
+            if i != j and countNumsInCommon(faces[i], faces[j]) >= 2:
+                #MERGE QUADRILATERALS?
+                f = faces[i] #(2,1,0) or some triplet of indices
+                p1, p2, p3 = points[f[0]],points[f[1]],points[f[2]]
+                (a,b,c,d) = slice3d.pointsToPlane(p1,p2,p3) #plane coeffs
+                #find the odd point to check
+
+                #check if coplanar:
+                coplanar = False
+                uniquePoints2 = pointsNotInCommon(faces[i],faces[j])
+                if len(uniquePoints2) == 0:
+                    uniquePoints1 = pointsNotInCommon(faces[j],faces[i])
+                    if(len(uniquePoints1) == 0):
+                        break #should be impossible
+                    (x,y,z) = points[uniquePoints1[0]]
+                else:
+                    (x,y,z) = points[uniquePoints2[0]]
+
+                if (almostEqual(a*x+b*y+c*z, d)):
+                    coplanar = True
+                
+                if coplanar:
+                    #face = reorderPoints(faces[i], points)
+                    #find opposite edge
+                    uniquePoints1 = pointsNotInCommon(faces[j],faces[i]) 
+                    lastUniqueIndex1 = faces[i].index(uniquePoints1[len(uniquePoints1)-1])#index of last unique point
+                    placeIndex = (lastUniqueIndex1+2)%(len(faces[i]))
+                    resultFace = faces[i][0:placeIndex] + uniquePoints2 + faces[i][placeIndex:]
+                    result.append(resultFace)
+                    merged = True
+                    faces.pop(j)
+                    faces.pop(i)
+                    i += 1 #extra hop for the second face merged
+                    break #back to the bigger for
+        if(not(merged)):
+            result.append(faces.pop(i))
     return result
 
 def almostEqual(d1, d2):
@@ -68,18 +122,19 @@ def dist(point1, point2):
     return ((x1-x)**2+(y1-y)**2+(z1-z)**2)**0.5
 
 #points cannot be repeated within a face, so this is ok
-def numsInCommon(L1, L2):
+def countNumsInCommon(L1, L2):
     num = 0
     for i in L1:
         if i in L2:
             num += 1
     return num
 
-def oddNumOut(L1, L2):
+def pointsNotInCommon(L1, L2):
+    result = []
     for i in L2:
         if i not in L1:
-            return i
-    return None
+            result.append(i)
+    return result
 
 def testMerge():
     points = [(0, 0, 0), (1, 0, 0), [1, 1, 0], [0, 1, 0],
@@ -120,7 +175,7 @@ def testHull():
     points = [(0, 0, 0), (1, 0, 0), [1,1,0],[0, 1, 0],
             [0, 0, 1],[0,1,1]]
     print("triPrism:", getHull(points))
-#testHull()
+testHull()
 
 def testHelpers():
     print("testing numsInCommon...", end="")
