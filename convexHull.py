@@ -10,11 +10,11 @@ def getHull(points):
     hull = ConvexHull(pts)
     faces = np.ndarray.tolist(hull.simplices)
     #merge a couple times
-    #for i in range(3):
-        #faces = mergeFaces(faces,points)
-    result = mergeFaces(mergeFaces(faces, points),points)
-    print("merged faces:", result)
-    return result
+    for i in range(1):
+        faces = mergeFaces(mergeFaces(faces,points),points)
+    #result = mergeFaces(faces, points)
+    print("merged faces:", faces)
+    return faces
 
 #completely self written code
 def mergeFaces(inputFaces, points):
@@ -43,12 +43,19 @@ def mergeFaces(inputFaces, points):
                     lastUniqueIndex = f1.index(lastUnique) 
                     #skip 1 point, and it's safe to place new points:
                     placeIndex = (lastUniqueIndex+2)%(len(f1))
-                    #SHOULD WE FLIP UNIQUEPOINTS?
-                    #ONLY WORKS FOR UP TO HEXAGONS
+
+                    print("common:", commonPointIndices(f1,f2))
                     if ( len(uniquePoints2) > 1 and 
                         dist(points[uniquePoints2[0]], points[lastUnique]) >
                         dist(points[uniquePoints2[1]], points[lastUnique]) ):
                         uniquePoints2.reverse()
+                    
+                    commonIndices = commonPointIndices(f1,f2)
+                    if abs(commonIndices[0]-commonIndices[1]) == 1:
+                        placeIndex = max(commonIndices[0],commonIndices[1])
+                    else:
+                        placeIndex = 0
+
                     addedFace = f1[:placeIndex] + uniquePoints2 + f1[placeIndex:]
                     result.append(addedFace)
                     merged = True
@@ -63,21 +70,27 @@ def mergeFaces(inputFaces, points):
 def almostEqual(d1, d2):
     epsilon = 10**-5
     return (abs(d2 - d1) < epsilon)
-#input: set of points
-#- find the plane they're on
-#- project them onto plane
-#output: indices of clockwise order
+'''
 def reorderPoints(face, points):
     (i1, i2, i3) = face #indices of points
     if dist(points[i1],points[i2]) > dist(points[i1],points[i3]):
         return [i1, i3, i2]
     return face
-
+'''
 def dist(point1, point2):
     (x,y,z) = point1
     (x1,y1,z1) = point2
     return ((x1-x)**2+(y1-y)**2+(z1-z)**2)**0.5
 
+def commonPointIndices(L1, L2):
+    result = []
+    for i in range(len(L1)):
+        if L1[i] in L2:
+            result.append(i)
+    if len(result) > 2:
+        raise Exception("Adjacent polygons should never have >2 common points")
+
+    return result
 #points cannot be repeated within a face, so this is ok
 def numsInCommon(L1, L2):
     num = 0
