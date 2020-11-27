@@ -39,7 +39,6 @@ class Poly3d(object):
         f,o,w = "", "black", 1 #for wireframe
         c = self.pos
         for face in self.faces:
-            color = rgbString(random.randint(0,255),random.randint(0,255),random.randint(0,255))
             facePoints = [self.points[i] for i in face]
             globPoints = grid3d.localToGlobal(c,facePoints)
             #if wireframe or face in self.visibleFaces:
@@ -47,7 +46,7 @@ class Poly3d(object):
             converted = []
             for p in globPoints:
                 converted.append(grid.to2d(p))
-            canvas.create_polygon(converted,fill=f,outline=color, width = w)
+            canvas.create_polygon(converted,fill=f,outline=o, width = w)
 
 #Course Notes 15-112
 def rgbString(r, g, b):
