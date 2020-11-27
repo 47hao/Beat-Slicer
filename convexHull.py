@@ -39,13 +39,18 @@ def mergeFaces(inputFaces, points):
                     #find opposite edge
                     uniquePoints1 = pointsNotInCommon(f2,f1) 
                     #find the last unique point in  1:
-                    lastUniqueIndex = f1.index(uniquePoints1[len(uniquePoints1)-1]) 
+                    lastUnique = uniquePoints1[len(uniquePoints1)-1]
+                    lastUniqueIndex = f1.index(lastUnique) 
                     #skip 1 point, and it's safe to place new points:
                     placeIndex = (lastUniqueIndex+2)%(len(f1))
-                    #WORKING HERE
-                    addedFace = f1[:placeIndex] + uniquePoints2[::-1] + f1[placeIndex:]
+                    #SHOULD WE FLIP UNIQUEPOINTS?
+                    #ONLY WORKS FOR UP TO HEXAGONS
+                    if ( len(uniquePoints2) > 1 and 
+                        dist(points[uniquePoints2[0]], points[lastUnique]) >
+                        dist(points[uniquePoints2[1]], points[lastUnique]) ):
+                        uniquePoints2.reverse()
+                    addedFace = f1[:placeIndex] + uniquePoints2 + f1[placeIndex:]
                     result.append(addedFace)
-                    #i += 1 #extra hop for the second face merged
                     merged = True
                     faces.remove(f1)
                     faces.remove(f2)
@@ -127,7 +132,7 @@ def testHull():
     points = [(0, 0, 0), (1, 0, 0), [1,1,0],[0, 1, 0],
             [0, 0, 1],[0,1,1]]
     print("triPrism:", getHull(points))
-testHull()
+#testHull()
 
 def testHelpers():
     print("testing numsInCommon...", end="")
