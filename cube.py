@@ -23,7 +23,11 @@ class Cube(poly3d.Poly3d):
         self.faceOrder = []
         self.orderFaces()
 
-        self.sliceVel = 0.1
+        self.sliceVel = 5
+
+    #if z is sliceable
+    def inSliceZone(self):
+        return abs(self.pos[2]) <= self.sideLength*2
 
     #dictionary of faces
     def setFaces(self):
@@ -77,7 +81,7 @@ class Cube(poly3d.Poly3d):
             f,o = "white", "black"
             w = roundHalfUp(0.995**z*self.outlineWidth)
 
-        if(abs(z) < self.sideLength): #indicate cube is in slice zone
+        if self.inSliceZone(): #indicate cube is in slice zone
             f = "green"
 
         #reassemble/reorder faceList?

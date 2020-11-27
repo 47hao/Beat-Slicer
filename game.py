@@ -1,6 +1,7 @@
 
 from cmu_112_graphics import *
 import grid3d
+import slice3d
 import poly3d
 import cube
 
@@ -12,14 +13,34 @@ class Game(App):
 
         app.cubes = []
         app.polys = []
-        cubeSpeed = 6 #absolute speed, pixels/ms
+        cubeSpeed = 4 #absolute speed, pixels/ms
         app.cubeVel = cubeSpeed*app.timerDelay
 
         app.grid = grid3d.Grid3d(app, app.focalLength)
 
         #app.testPoly()
-        app.addCube((100,100,-50),(0,0,0))
+        #app.addCube((100,100,0),(0,0,0))
+
+        app.mouseDown = False
+        app.mousePos1 = None
+        app.mousePos2 = None
     
+    def mousePressed(app, event):
+        app.mouseDown = True
+        app.mousePos1 = (event.x,event.y)
+
+    def mouseReleased(app, event):
+        app.mouseDown = False
+        app.mousePos2 = (event.x,event.y)
+        #get plane from mouse pos
+        (mx0, my0) = app.mousePos1
+        (x0, y0) = (mx0-app.width/2,my0-app.height/2)
+        (mx1, my1) = app.mousePos2
+        (x1, y1) = (mx1-app.width/2,my1-app.height/2)
+        
+        plane = slice3d.pointsToPlane((x0,y0,0),(x1,y1,0),(x0,y0,100))
+        app.sliceAllCubes(plane)
+
     def keyPressed(app, event):
         app.testSliceCube()
 
@@ -29,7 +50,7 @@ class Game(App):
         points[3] = (0,-40,0)
         poly = poly3d.Poly3d((100,50,-20),(0,0,-2),points)
         app.polys.append(poly)
-
+    '''
     def testSliceCube(app):
         #polys = app.cubes[0].sliceCube((1,2,0.5,270))
         #polys = app.cubes[0].sliceCube((1,-1.1,0.5,0))
@@ -40,13 +61,26 @@ class Game(App):
         (poly1, poly2) = polys
         app.cubes.pop(0)
         app.polys.extend([poly1,poly2])
+    '''
+    def sliceAllCubes(app, plane):
+        for cube in app.cubes:
+            if cube.inSliceZone():
+                app.sliceCube(cube, plane)
+    
+    def sliceCube(app,cube, plane):
+        polys = cube.sliceCube(plane)
+        if polys == None:
+            return
+        (poly1, poly2) = polys
+        app.cubes.pop(app.cubes.index(cube))
+        app.polys.extend([poly1,poly2])
 
     def makeTestCubes(app):
         app.addCube((0,0,-10),(0,0,-1*app.cubeVel))
 
     def timerFired(app):
         app.ticks += 1
-        #app.makeSampleCubePattern()
+        app.makeSampleCubePattern()
         app.moveCubes()
     
     def makeSampleCubePattern(app):
@@ -93,10 +127,15 @@ class Game(App):
     def redrawAll(app, canvas):
         #app.drawBackground(canvas)
         #app.drawGrid(canvas)
-        #canvas.create_rectangle(10,10,10+app.cubeSize,10+app.cubeSize)
+        #canvas.create_rectangle(10,10,10+app.grid.cubeSize,10+app.grid.cubeSize)
         app.drawCubes(canvas)
         app.drawPolys(canvas)
+        app.drawSlice(canvas)
     
+    def drawSlice(app, canvas):
+        if app.mousePos1 != None and app.mousePos2 != None:
+            canvas.create_line(app.mousePos1,app.mousePos2)
+
     def drawCubes(app, canvas): #draw them in the right order
         for i in range(len(app.cubes)-1, -1, -1):
             app.cubes[i].draw(app.grid, canvas, True)
@@ -110,7 +149,5 @@ class Game(App):
     
     def closeApp(app):
         pass
-
-
 
 Game(width=800,height=600)
