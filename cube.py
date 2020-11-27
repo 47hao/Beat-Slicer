@@ -23,11 +23,11 @@ class Cube(poly3d.Poly3d):
         self.faceOrder = []
         self.orderFaces()
 
-        self.sliceVel = 5
+        self.sliceVel = 8
 
     #if z is sliceable
     def inSliceZone(self):
-        return abs(self.pos[2]) <= self.sideLength*2
+        return abs(self.pos[2]) <= self.sideLength*3
 
     #dictionary of faces
     def setFaces(self):
@@ -99,8 +99,10 @@ class Cube(poly3d.Poly3d):
         glob = grid3d.localToGlobal(self.pos, self.points)
         #print("global points:",glob)
         sliced = slice3d.slicePoly(glob,self.EDGES,plane)
+        
         if sliced == None:
             return None
+        #print("i am sliced")
         (points1, points2) = sliced
         loc1 = grid3d.globalToLocal(self.pos, points1)
         loc2 = grid3d.globalToLocal(self.pos, points2)

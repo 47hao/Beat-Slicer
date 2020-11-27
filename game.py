@@ -9,17 +9,17 @@ class Game(App):
     def appStarted(app):
         app.focalLength = 400
         app.ticks = 0
-        app.timerDelay = 2
+        app.timerDelay = 4
 
         app.cubes = []
         app.polys = []
-        cubeSpeed = 4 #absolute speed, pixels/ms
+        cubeSpeed = 2 #absolute speed, pixels/ms
         app.cubeVel = cubeSpeed*app.timerDelay
 
         app.grid = grid3d.Grid3d(app, app.focalLength)
 
         #app.testPoly()
-        #app.addCube((100,100,0),(0,0,0))
+        app.addCube((100,0,0),(0,0,0))
 
         app.mouseDown = False
         app.mousePos1 = None
@@ -63,17 +63,29 @@ class Game(App):
         app.polys.extend([poly1,poly2])
     '''
     def sliceAllCubes(app, plane):
-        for cube in app.cubes:
+        zoneCounter = 0
+        i = 0
+        while i < len(app.cubes):
+            cube = app.cubes[i]
             if cube.inSliceZone():
-                app.sliceCube(cube, plane)
-    
+                success = app.sliceCube(cube, plane)
+                if(not(success)):
+                    i += 1
+                #move on; didn't slice
+            else:
+                i += 1
+        print("====")
+        app.cleanCubes()
+
     def sliceCube(app,cube, plane):
+        print("slice called")
         polys = cube.sliceCube(plane)
         if polys == None:
-            return
+            return False
         (poly1, poly2) = polys
         app.cubes.pop(app.cubes.index(cube))
         app.polys.extend([poly1,poly2])
+        return True
 
     def makeTestCubes(app):
         app.addCube((0,0,-10),(0,0,-1*app.cubeVel))
@@ -84,19 +96,31 @@ class Game(App):
         app.moveCubes()
     
     def makeSampleCubePattern(app):
-        if(app.ticks*app.timerDelay%300 == 0):
+        if(app.ticks*app.timerDelay%600 == 0):
             for row in [-1,0,1]:
                 for col in [-1,1]:
                     (x,y) = app.grid.getLaneCoords(row, col)
                     app.addCube((x,y,app.grid.startZ),
                                 (0,0,-1*app.cubeVel))
-        if(app.ticks*app.timerDelay%300 == 150):
+        if(app.ticks*app.timerDelay%600 == 300):
             for row in [-1, 1]:
                 for col in [-1, 0, 1]:
                     (x,y) = app.grid.getLaneCoords(row, col)
                     app.addCube((x,y,app.grid.startZ),
                                 (0,0,-1*app.cubeVel))
     
+    def makeSampleCubePattern2(app):
+        if(app.ticks*app.timerDelay%600 == 0):
+            for col in [-1,1]:
+                (x,y) = app.grid.getLaneCoords(0, col)
+                app.addCube((x,y,app.grid.startZ),
+                                (0,0,-1*app.cubeVel))
+        if(app.ticks*app.timerDelay%600 == 300):
+            for row in [-1, 1]:
+                (x,y) = app.grid.getLaneCoords(row, 0)
+                app.addCube((x,y,app.grid.startZ),
+                            (0,0,-1*app.cubeVel))
+
     def addCube(app, pos, vel):
         app.cubes.append(cube.Cube(pos, vel, app.grid.cubeSize))
 
@@ -105,7 +129,6 @@ class Game(App):
             cube.move()
         for poly in app.polys:
             poly.move()
-        app.cleanCubes()
 
     def cleanCubes(app):
         i = 0
@@ -118,7 +141,8 @@ class Game(App):
                 break
         while i < len(app.polys):
             poly = app.polys[i]
-            if poly.pos[2] < -1*app.focalLength:
+            if (poly.pos[2] < -1*app.focalLength or abs(poly.pos[1]) > app.height or
+                abs(poly.pos[0]) > app.width):
                 app.polys.pop(i)
                 #print(len(app.cubes))
             else: #frontmost cubes are lowest indices 
