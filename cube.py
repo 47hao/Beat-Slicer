@@ -66,7 +66,6 @@ class Cube(poly3d.Poly3d):
             result.append(nextTopFace)
         if(nextSideFace != None):
             result.append(nextSideFace)
-        #
         result.append("front")
         self.faceOrder = result
 

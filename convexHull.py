@@ -3,17 +3,16 @@ from scipy.spatial import ConvexHull
 import slice3d
 import copy
 
-#does it matter if this takes global points? prolly not?
-#Source: https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.ConvexHull.html
 def getHull(points):
     pts = np.array(points)
+
+    #Source: https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.ConvexHull.html
     hull = ConvexHull(pts)
+
     faces = np.ndarray.tolist(hull.simplices)
-    #merge a couple times
-    for i in range(1):
-        faces = mergeFaces(mergeFaces(faces,points),points)
-    #result = mergeFaces(faces, points)
-    print("merged faces:", faces)
+    #merge a couple times for 5 and 6-sided shapes
+    for i in range(2):
+        faces = mergeFaces(faces,points)
     return faces
 
 #completely self written code
@@ -22,40 +21,30 @@ def mergeFaces(inputFaces, points):
     result = []
     i = 0
     while i < len(faces):
-        merged = False
-        j=0
-        while j < len(faces):
+        merged = False #know whether to add the lone face at the end
+        j = 0
+        while j < len(faces): #check for merging with all other faces
             if i != j and numsInCommon(faces[i], faces[j]) >= 2:
-                #these faces are touching
-                #find the plane of the first face:
                 f1, f2 = faces[i], faces[j] #(2,1,0), indices of face coords
                 p1, p2, p3 = points[f1[0]],points[f1[1]],points[f1[2]]
                 (a,b,c,d) = slice3d.pointsToPlane(p1,p2,p3) #plane coeffs
-                #find the odd point to check
                 uniquePoints2 = pointsNotInCommon(f1,f2)
                 (x,y,z) = points[uniquePoints2[0]]
                 if(almostEqual(a*x+b*y+c*z, d)):
-                    #face = reorderPoints(faces[i], points)
-                    #find opposite edge
+                    #decide order of insertion points
                     uniquePoints1 = pointsNotInCommon(f2,f1) 
-                    #find the last unique point in  1:
                     lastUnique = uniquePoints1[len(uniquePoints1)-1]
-                    lastUniqueIndex = f1.index(lastUnique) 
-                    #skip 1 point, and it's safe to place new points:
-                    placeIndex = (lastUniqueIndex+2)%(len(f1))
-
-                    print("common:", commonPointIndices(f1,f2))
-                    if ( len(uniquePoints2) > 1 and 
+                    if (len(uniquePoints2) > 1 and 
                         dist(points[uniquePoints2[0]], points[lastUnique]) >
                         dist(points[uniquePoints2[1]], points[lastUnique]) ):
                         uniquePoints2.reverse()
-                    
+                    #find the spot for insertion
                     commonIndices = commonPointIndices(f1,f2)
                     if abs(commonIndices[0]-commonIndices[1]) == 1:
                         placeIndex = max(commonIndices[0],commonIndices[1])
                     else:
                         placeIndex = 0
-
+                    #add merged face to result
                     addedFace = f1[:placeIndex] + uniquePoints2 + f1[placeIndex:]
                     result.append(addedFace)
                     merged = True
@@ -64,19 +53,12 @@ def mergeFaces(inputFaces, points):
             j += 1
         if not(merged):
             result.append(faces.pop(i))
-        #i += 1
     return result
 
 def almostEqual(d1, d2):
     epsilon = 10**-5
     return (abs(d2 - d1) < epsilon)
-'''
-def reorderPoints(face, points):
-    (i1, i2, i3) = face #indices of points
-    if dist(points[i1],points[i2]) > dist(points[i1],points[i3]):
-        return [i1, i3, i2]
-    return face
-'''
+
 def dist(point1, point2):
     (x,y,z) = point1
     (x1,y1,z1) = point2
@@ -89,9 +71,9 @@ def commonPointIndices(L1, L2):
             result.append(i)
     if len(result) > 2:
         raise Exception("Adjacent polygons should never have >2 common points")
-
     return result
-#points cannot be repeated within a face, so this is ok
+
+#points cannot be repeated within a face, so this code is ok
 def numsInCommon(L1, L2):
     num = 0
     for i in L1:

@@ -32,8 +32,8 @@ class Game(App):
 
     def testSliceCube(app):
         #polys = app.cubes[0].sliceCube((1,2,0.5,270))
-        polys = app.cubes[0].sliceCube((1,-1.1,0.5,0))
-        #polys = app.cubes[0].sliceCube((1,-1.1,-.5,50))
+        #polys = app.cubes[0].sliceCube((1,-1.1,0.5,0))
+        polys = app.cubes[0].sliceCube((1,-1.1,-.5,50))
         #polys = app.cubes[0].sliceCube((0,0,1,-50))
         if polys == None:
             return
