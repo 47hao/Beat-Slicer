@@ -12,7 +12,7 @@ def getHull(points):
     #merge a couple times
     #for i in range(3):
         #faces = mergeFaces(faces,points)
-    result = mergeFaces(faces, points)
+    result = mergeFaces(mergeFaces(faces, points),points)
     print("merged faces:", result)
     return result
 
@@ -23,30 +23,36 @@ def mergeFaces(inputFaces, points):
     i = 0
     while i < len(faces):
         merged = False
-        for j in range(len(faces)):
+        j=0
+        while j < len(faces):
             if i != j and numsInCommon(faces[i], faces[j]) >= 2:
                 #these faces are touching
                 #find the plane of the first face:
-                f1 = faces[i] #(2,1,0), indices of face coords
+                f1, f2 = faces[i], faces[j] #(2,1,0), indices of face coords
                 p1, p2, p3 = points[f1[0]],points[f1[1]],points[f1[2]]
                 (a,b,c,d) = slice3d.pointsToPlane(p1,p2,p3) #plane coeffs
                 #find the odd point to check
-                uniquePoint2 = oddNumOut(faces[i],faces[j])
-                (x,y,z) = points[uniquePoint2]
+                uniquePoints2 = pointsNotInCommon(f1,f2)
+                (x,y,z) = points[uniquePoints2[0]]
                 if(almostEqual(a*x+b*y+c*z, d)):
                     #face = reorderPoints(faces[i], points)
                     #find opposite edge
-                    uniquePoint1 = oddNumOut(faces[j],faces[i]) 
-                    oppositePointIndex = faces[i].index(uniquePoint1)
-                    placeIndex = (oppositePointIndex+2)%(len(faces[i]))
-                    addedFace = copy.copy(faces[i])
-                    addedFace.insert(placeIndex,uniquePoint2)
+                    uniquePoints1 = pointsNotInCommon(f2,f1) 
+                    #find the last unique point in  1:
+                    lastUniqueIndex = f1.index(uniquePoints1[len(uniquePoints1)-1]) 
+                    #skip 1 point, and it's safe to place new points:
+                    placeIndex = (lastUniqueIndex+2)%(len(f1))
+                    #WORKING HERE
+                    addedFace = f1[:placeIndex] + uniquePoints2[::-1] + f1[placeIndex:]
                     result.append(addedFace)
-                    i += 1 #extra hop for the second face merged
+                    #i += 1 #extra hop for the second face merged
                     merged = True
+                    faces.remove(f1)
+                    faces.remove(f2)
+            j += 1
         if not(merged):
             result.append(faces.pop(i))
-        i += 1
+        #i += 1
     return result
 
 def almostEqual(d1, d2):
@@ -75,11 +81,12 @@ def numsInCommon(L1, L2):
             num += 1
     return num
 
-def oddNumOut(L1, L2):
+def pointsNotInCommon(L1, L2):
+    result = []
     for i in L2:
         if i not in L1:
-            return i
-    return None
+            result.append(i)
+    return result
 
 def testMerge():
     points = [(0, 0, 0), (1, 0, 0), [1, 1, 0], [0, 1, 0],

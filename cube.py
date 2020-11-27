@@ -23,7 +23,7 @@ class Cube(poly3d.Poly3d):
         self.faceOrder = []
         self.orderFaces()
 
-        self.sliceVel = 0.3
+        self.sliceVel = 0.2
 
     #dictionary of faces
     def setFaces(self):
