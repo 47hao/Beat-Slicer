@@ -23,42 +23,7 @@ def slicePoly(points, edges, plane):
         if(intersect != None):
             half1.append(intersect)
             half2.append(intersect)
-    '''
-    order1, order2 = lexicoOrder(half1), lexicoOrder(half2)
-    result1, result2 = [],[]
-    for i in order1:
-        result1.append(half1[i])
-    for i in order2:
-        result2.append(half2[i])
-    '''
     return half1, half2
-'''
-def lexicoOrder(points):
-    result = []
-    for i in range(len(points)):
-        point = points[i]
-        if result == []:
-            result.append(i)
-        else:
-            j = 0
-            while  j < len(result) and lexiLess(points[result[j]], points[i]):
-                j += 1
-            if j == len(result):
-                result.append(i)
-            else:
-                result.insert(j,i)
-    return result
-
-def lexiLess(a,b):
-    if a[2] < b[2]: #z is less than
-        return True
-    elif a[2] == b[2] and a[1] < b[1]:
-        return True
-    elif a[2] == b[2] and a[1] == b[1] and a[0] < b[0]:
-        return True
-    else:
-        return False
-'''
 
 #Find plane equation in form: ax+by+cz = 1
 def pointsToPlane(a,b,c): 

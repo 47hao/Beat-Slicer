@@ -11,6 +11,7 @@ class Poly3d(object):
         self.vel = vel
         self.points = points
         self.faces = self.getFaces()
+        self.grav = 0.5
 
         self.drawPoints = False
     
@@ -21,9 +22,10 @@ class Poly3d(object):
     def getPoints(self):
         return self.points
     
-    def move(self):
+    def move(self, timerDelay):
         (x,y,z) = self.pos
         (dx,dy,dz) = self.vel
+        self.vel = (dx,dy+self.grav,dz)
         self.pos = (x+dx,y+dy,z+dz)
     
     def draw(self, grid, canvas):

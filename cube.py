@@ -29,6 +29,11 @@ class Cube(poly3d.Poly3d):
     def inSliceZone(self):
         return abs(self.pos[2]) <= self.sideLength*3
 
+    def move(self, timerDelay): #no gravity
+        (x,y,z) = self.pos
+        (dx,dy,dz) = self.vel
+        self.pos = (x+dx,y+dy,z+dz)
+
     #dictionary of faces
     def setFaces(self):
         #result = {}
@@ -116,6 +121,39 @@ class Cube(poly3d.Poly3d):
         poly1 = poly3d.Poly3d(self.pos, vel1, loc1)
         poly2 = poly3d.Poly3d(self.pos, vel2, loc2)
         return poly1, poly2
+
+    def lineInCube(self, p0, p1):
+        (x,y,z) = self.pos
+        s = self.sideLength/2
+        points = [(x-s,y-s),(x+s,y-s),(x+s,y+s),(x-s,y+s)]
+        for i in range(4):
+            q0, q1 = points[i], points[i-1]
+            if checkLineIntersect(q0,q1,p0,p1):
+                return True
+        return False
+
+
+#checkIntersect general algorithm based on code by Ansh Riyal
+#https://www.geeksforgeeks.org/check-if-two-given-line-segments-intersect/
+def checkLineIntersect(a0, a1, b0, b1): #lines (a0 -> a1) and (b0 -> b1)
+    o1 = orientation(a0, a1, b0)
+    o2 = orientation(a0, a1, b1)
+    o3 = orientation(b0, b1, a0)
+    o4 = orientation(b0, b1, a1)
+    if o1 != o2 and o3 != o4:
+        return True
+    return False
+
+def orientation(a,b,c):
+    (x0,y0),(x1,y1),(x2,y2) = a,b,c
+    value = ((y1-y0) * (x2-x1) - (x1-x0) * (y2-y1))
+    if value > 0:
+        return "counterClock"
+    elif value < 0:
+        return "clock"
+    else:
+        return "colinear"
+
 
 def getUnitVector(i,j,k):
     d = (i**2+j**2+k**2)**0.5
