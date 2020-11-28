@@ -6,8 +6,15 @@ import poly3d
 import cube
 import blade
 
+import camTracker
+import threading
+
 class Game(App):
     def appStarted(app):
+        app.debugMode = True
+        app.maxThreads = 4
+        app.runThreads = True
+
         app.focalLength = 400
         app.ticks = 0
         app.timerDelay = 2
@@ -26,31 +33,42 @@ class Game(App):
         #app.mouseDown = False
         #app.mousePos1 = None
         #app.mousePos2 = None
-    '''
-    def mousePressed(app, event):
-        app.mouseDown = True
-        app.mousePos1 = (event.x,event.y)
-
-    def mouseReleased(app, event):
-        app.mouseDown = False
-        app.mousePos2 = (event.x,event.y)
-        #get plane from mouse pos
-        (mx0, my0) = app.mousePos1
-        (x0, y0) = (mx0-app.width/2,my0-app.height/2)
-        (mx1, my1) = app.mousePos2
-        (x1, y1) = (mx1-app.width/2,my1-app.height/2)
-        app.sliceAllCubes((x0,y0),(x1,y1))
-    '''
+        app.camThreshold = .9
+        app.cam = camTracker.camTracker()
+        app.playerPos = (0,0)
+        
+    
     def timerFired(app):
         app.ticks += 1
+        if(app.runThreads):
+            if(app.countCamThreads() < app.maxThreads):
+                thread = camThread(2, "camThread", app)
+                thread.start()
+        else:
+            app.camTick()
+        
         app.blade.bladeStep()
         app.makeSampleCubePattern()
         app.moveCubes()
         app.bladeSlice()
 
-    def mouseMoved(app,event):
-        app.blade.insertPoint((event.x,event.y))
-
+    def camTick(app):
+        output = app.cam.getCoords(app.camThreshold)
+        if(output != None):
+            (xScale, yScale) = output
+            x = app.width*(1-xScale) #camera's flipped
+            y = app.height*yScale
+            #add point to blade
+            app.blade.points.insert(0,(x,y))
+    
+    def countCamThreads(app):
+        threads = threading.enumerate()
+        count = 0
+        for t in threads:
+            if t.name == "camThread":
+                count += 1
+        return count
+        
     def testPoly(app):
         testCube = cube.Cube((100,50,-20),(0,0,0),30)
         points = testCube.getPoints()
@@ -67,16 +85,16 @@ class Game(App):
 
     def sliceAllCubes(app, p0, p1):
         (x0,y0),(x1,y1) = p0, p1
-        plane = slice3d.pointsToPlane((x0,y0,0),(x1,y1,0),(x0,y0,100))
+        plane = slice3d.pointsToPlane((x0,y0,0),(x1,y1,0),(0,0,-1000))
         i = 0
         while i < len(app.cubes):
             cube = app.cubes[i]
             if cube.inSliceZone() and cube.lineInCube(p0, p1):
                 #should always work
-                app.sliceCube(cube, plane)
+                success = app.sliceCube(cube, plane)
                 #success = 
-                #if(not(success)):
-                #    i += 1
+                if(not(success)):
+                    i += 1
                 #move on; didn't slice
             else:
                 i += 1
@@ -156,11 +174,15 @@ class Game(App):
         app.drawPolys(canvas)
         #app.drawSlice(canvas)
         app.blade.draw(canvas)
-    '''
-    def drawSlice(app, canvas):
-        if app.mousePos1 != None and app.mousePos2 != None:
-            canvas.create_line(app.mousePos1,app.mousePos2)
-    '''
+        if(app.debugMode):
+            app.drawReferenceMarker(canvas)
+
+    def drawReferenceMarker(app, canvas):
+        r = 10
+        (x,y) = app.playerPos
+        canvas.create_oval(x-r, y-r, x+r, y+r,
+                            fill = "red", outline = "")
+
     def drawCubes(app, canvas): #draw them in the right order
         for i in range(len(app.cubes)-1, -1, -1):
             app.cubes[i].draw(app.grid, canvas, True)
@@ -174,5 +196,15 @@ class Game(App):
     
     def closeApp(app):
         pass
+
+class camThread(threading.Thread):
+    def __init__(self, threadID, name, game):
+        threading.Thread.__init__(self)
+        self.threadID = threadID
+        self.name = name
+        self.game = game
+
+    def run(self):
+        self.game.camTick()
 
 Game(width=800,height=600)
