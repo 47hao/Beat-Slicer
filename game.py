@@ -17,11 +17,11 @@ class Game(App):
 
         app.focalLength = 400
         app.ticks = 0
-        app.timerDelay = 3
+        app.timerDelay = 1
 
         app.cubes = []
         app.polys = []
-        cubeSpeed = 4 #absolute speed, pixels/ms
+        cubeSpeed = 8 #pixels/ms, inaccurate due to timer
         app.cubeVel = cubeSpeed*app.timerDelay
 
         app.grid = grid3d.Grid3d(app, app.focalLength)
@@ -30,30 +30,27 @@ class Game(App):
         app.addCube((100,0,0),(0,0,0))
 
         app.blade = blade.Blade(app)
-        #app.mouseDown = False
-        #app.mousePos1 = None
-        #app.mousePos2 = None
+
         app.camThreshold = .9
         app.cam = camTracker.camTracker()
         app.playerPos = (0,0)
-        
+
+        cThread = camThread(1, "camThread", app)
+        cThread.start()
+        #mThread = moveThread(1, "moveThread", app)
+        #mThread.start()
     
     def timerFired(app):
         app.ticks += 1
-        if(app.runThreads):
-            if(app.countCamThreads() < app.maxThreads):
-                thread = camThread(2, "camThread", app)
-                thread.start()
-        else:
-            app.camTick()
-        
         app.blade.bladeStep()
         app.makeSampleCubePattern()
         app.moveCubes()
         app.bladeSlice()
+        if(app.debugMode):
+            app.cam.showFrame()
 
     def camTick(app):
-        output = app.cam.getCoords(app.camThreshold)
+        output = app.cam.getCoords(app.camThreshold, app.debugMode)
         if(output != None):
             (xScale, yScale) = output
             x = app.width*(1-xScale) #camera's flipped
@@ -205,6 +202,18 @@ class camThread(threading.Thread):
         self.game = game
 
     def run(self):
-        self.game.camTick()
+        while self.game._running:
+            self.game.camTick()
+'''
+class moveThread(threading.Thread):
+    def __init__(self, threadID, name, game):
+        threading.Thread.__init__(self)
+        self.threadID = threadID
+        self.name = name
+        self.game = game
 
+    def run(self):
+        while self.game._running:
+            self.game.moveCubes()
+'''
 Game(width=800,height=600)

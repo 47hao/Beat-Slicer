@@ -59,26 +59,37 @@ def findLargestLight(im):
     return cx/im.shape[1], cy/im.shape[0]
 
 class camTracker(object):
+    
     def __init__(self):
         self.cap = cv2.VideoCapture(0)
         self.debugImage = None
         self.showFilter = False
+        self.counter = 0
+        self.frame = None
+        self.filtered = None
     
-    def getCoords(self, threshold):
+    def getCoords(self, threshold, showDebug):
+        self.counter += 1
         #print(threshold)
         ret, frame = self.cap.read()
         #frame = cropImage(frame, 0, 0)
         filtered = filterLight(frame, threshold)#process data
-        print(type(filtered))
-        #self.debugImage = filtered
-        if self.showFilter:
-            cv2.imshow('mask',filtered)
-            cv2.imshow('frame',frame)
+
+        #add images to be displayed when show is called
+        if showDebug and self.counter%5 == 0:
+            self.frame = frame
+            self.filtered = filtered
+
         return findLargestLight(filtered)
-        #addons
-        #frame = drawInterface(frame, testBool, capturing)
-        #frame150 = rescale_frame(frame, percent=150)
     
+    def showFrame(self):
+        try: #sometimes frame is none, suppress such errors
+            #frame150 = rescale_frame(frame, percent=150)
+            cv2.imshow('frame',self.frame)
+            cv2.imshow('filtered',self.filtered)
+        except:
+            pass
+
     def toggleFilter(self):
         self.showFilter = not(self.showFilter)
 

@@ -8,7 +8,7 @@ class Game(App):
     def appStarted(app):
         app.debugMode = True
         app.maxThreads = 4
-        app.runThreads = False
+        app.runThreads = True
         
         app.timerDelay = 5
         app.camThreshold = .9
@@ -18,6 +18,8 @@ class Game(App):
         app.yPos = 0
 
         app.audioDriver = audioDriver.audioDriver()
+        thread = camThread(2, "camThread", app)
+        thread.start()
     
     def keyPressed(app, event):
         #controlling camera sensitivity
@@ -40,15 +42,10 @@ class Game(App):
         thread.start()
 
     def timerFired(app):
-        if(app.runThreads):
-            if(app.countCamThreads() < app.maxThreads):
-                thread = camThread(2, "camThread", app)
-                thread.start()
-        else:
-            app.camTick()
-        print(app.countCamThreads())
+        pass
+        #print(app.countCamThreads())
         #print(threading.enumerate()[0])
-    
+    '''
     def countCamThreads(app):
         threads = threading.enumerate()
         count = 0
@@ -56,9 +53,9 @@ class Game(App):
             if t.name == "camThread":
                 count += 1
         return count
-
-    def camTick(app):
-        output = app.cam.getCoords(app.camThreshold)
+    '''
+    def camTick(app,):
+        output = app.cam.getCoords(app.camThreshold,app.debugMode)
         if(output != None):
             (xScale, yScale) = output
             app.xPos = app.width*(1-xScale) #camera's flipped
@@ -86,6 +83,7 @@ class camThread(threading.Thread):
         self.game = game
 
     def run(self):
-        self.game.camTick()
+        while self.game._running:
+            self.game.camTick()
 
 Game(width=900,height=600)
