@@ -2,7 +2,6 @@ from cmu_112_graphics import *
 
 import camTracker
 import audioDriver
-#import audioThread
 import threading
 
 class Game(App):

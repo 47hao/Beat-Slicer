@@ -69,6 +69,7 @@ class camTracker(object):
         ret, frame = self.cap.read()
         #frame = cropImage(frame, 0, 0)
         filtered = filterLight(frame, threshold)#process data
+        print(type(filtered))
         #self.debugImage = filtered
         if self.showFilter:
             cv2.imshow('mask',filtered)
