@@ -17,7 +17,7 @@ class Game(App):
 
         app.focalLength = 400
         app.ticks = 0
-        app.timerDelay = 2
+        app.timerDelay = 3
 
         app.cubes = []
         app.polys = []
@@ -185,7 +185,7 @@ class Game(App):
 
     def drawCubes(app, canvas): #draw them in the right order
         for i in range(len(app.cubes)-1, -1, -1):
-            app.cubes[i].draw(app.grid, canvas, True)
+            app.cubes[i].draw(app.grid, canvas, False)
     
     def drawPolys(app, canvas): #draw them in the right order
         for i in range(len(app.polys)-1, -1, -1):

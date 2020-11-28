@@ -6,9 +6,10 @@ class Blade(object):
     def __init__(self, game):
         self.points = []
         self.game = game
-        self.maxLength = 400
+        self.maxLength = 250
         self.bladeTicks = 0
-        self.removeDelay = 6
+        self.removeDelay = 2
+        self.minPoints = 4
 
     def bladeStep(self):
         self.bladeTicks += 1
@@ -20,7 +21,7 @@ class Blade(object):
             i += 1
         if lengthUsed > self.maxLength:
             self.points = self.points[:i] #chop off extra long points
-        if(len(self.points) > 1):
+        if(len(self.points) > self.minPoints):
             if(self.bladeTicks%self.removeDelay == 0):
                 self.points.pop()
 

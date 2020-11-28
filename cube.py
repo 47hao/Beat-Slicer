@@ -86,8 +86,8 @@ class Cube(poly3d.Poly3d):
             f,o = "white", "black"
             w = roundHalfUp(0.995**z*self.outlineWidth)
 
-        if self.inSliceZone(): #indicate cube is in slice zone
-            f = "green"
+        #if self.inSliceZone(): #indicate cube is in slice zone
+        #    f = "green"
 
         #reassemble/reorder faceList?
         c = self.pos #centroid
