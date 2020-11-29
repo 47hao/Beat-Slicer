@@ -9,6 +9,9 @@ import blade
 import camTracker
 import threading
 
+#This project uses cmu_112_graphics, based on tkinter:
+#https://www.cs.cmu.edu/~112/
+
 class Game(App):
     def appStarted(app):
         app.debugMode = True
