@@ -1,51 +1,47 @@
 from cmu_112_graphics import *
 import audioDriver
 import time
-
-def appStarted(app):
-    app.timerDelay = 25
-    app.ticks = 0
-    app.frameChunk = 512
-    app.driver = audioDriver.audioDriver(True)
-    app.driver.playTrack("VivaLaVida.wav")
     
-'''
-def timerFired(app):
-    app.ticks += 1
-    app.driver.stepMusic(app.frameChunk)
+
+
+class audioTest(App):
+    def appStarted(app):
+        app.timerDelay = 1
+        app.driver = audioDriver.audioDriver("all")
     
-    trueTime = app.lastTime - time.time()
-    print("time:", trueTime)
-    #app.frameChunk = trueTime * 20
-    app.lastTime = time.time()
-'''
-def playSound(app, name):
-    thread = audioDriver.audioThread(1, "soundThread", name)
-    thread.start()
+    def timerFired(app):
+        return
+        print(app.driver.currentBeat)
+        if almostEquals(app.driver.currentBeat,app.driver.currentBeat//1):
+            print(app.driver.currentBeat)
+    
+    def beat(app, beat, subdivision):
+        print(beat)
 
-def keyPressed(app, event):
-    if event.key == "Up":
-        app.timerDelay += 1
-    elif event.key == "Down":
-        app.timerDelay -= 1
-    elif event.key == "Left":
-        app.frameChunk //= 2
-    elif event.key == "Right":
-        app.frameChunk *= 2
-    elif event.key == "Space":
-        playSound(app, "HitLongLeft1.wav")
+    def playSound(app, name): #Do i need a musicThread? or can I universalize a thread type
+        thread = audioDriver.audioThread(1, "soundThread", name)
+        thread.start()
 
-def redrawAll(app, canvas):
-    canvas.create_text(20,20,font="Arial 20 bold", 
-        text=f"timerDelay: {app.timerDelay}", anchor = "nw")
-    canvas.create_text(20,100,font="Arial 20 bold", 
-        text=f"FrameSize: {app.frameChunk}", anchor = "nw")
+    def keyPressed(app, event):
+        if event.key == "Space":
+            app.driver.playTrack(app, "VivaLaVida.wav")
+            playSound(app, "HitLongLeft1.wav")
 
-    #3ms delay = 256 frames
-    #8ms delay = 512 frames
-    #20ms delay = 1024
+    def redrawAll(app, canvas):
+        return
+        canvas.create_text(20,20,font="Arial 20 bold", 
+            text=f"timerDelay: {app.timerDelay}", anchor = "nw")
+        canvas.create_text(20,100,font="Arial 20 bold", 
+            text=f"FrameSize: {app.frameChunk}", anchor = "nw")
 
-def closeApp(app):
-    return
+    def closeApp(app):
+        return
 
-runApp(width =400, height=500)
+def almostEquals(a,b):
+    epsilon = 10**-4
+    if abs(a-b) < epsilon:
+        return True
+
+
+
+audioTest(width=400, height=500)

@@ -18,14 +18,15 @@ import os
 
 hitSounds = os.listdir("hitSounds")
 musics = os.listdir("music")
-bpm = {"VivaLaVida.wav":136}
+#(bpm, offset(ms))
+bpm = {"VivaLaVida.wav":(138,1.7)}
 
 class audioDriver(object):
     def __init__(self, soundDir):
         self.p = pyaudio.PyAudio()
         self.sounds = dict()
         if soundDir == "all":
-            print("LOADING SOUND FILES...")
+            print("LOADING ALL SOUND FILES...")
             for fileName in hitSounds:
                 self.sounds[fileName] = wave.open("hitSounds/" + fileName, 'rb') 
             for fileName in musics:
@@ -34,44 +35,46 @@ class audioDriver(object):
         else:
             name = soundDir.split("/")
             self.sounds[name[len(name)-1]] = wave.open(soundDir, 'rb')
-
-    def close(self):
-        self.stream.stop_stream()
-        self.stream.close()
-        self.p.terminate()
     
-    def playTrack(self, name):
+    def playTrack(self, app, name):
         print("LOADING:", name)
         self.wf = self.sounds[name]
-        print('sampWidth:', self.wf.getsampwidth())
-        print('channels:', self.wf.getnchannels())
-        print("framerate:", self.wf.getframerate())
+        frameRate = self.wf.getframerate()
+        print("framerate:", frameRate)
         stream = self.p.open(format=self.p.get_format_from_width(
                 self.wf.getsampwidth()),
                 channels=self.wf.getnchannels(),
-                rate=self.wf.getframerate(),
+                rate=frameRate,
                 output=True)
-        #quick maffs
-        FramesPerMs = self.wf.getframerate()/1000
-        beatsPerMs = bpm[name]/60/1000
-        framesPerBeat = FramesPerMs/beatsPerMs
-        frameChunk = int(framesPerBeat)
-        data = self.wf.readframes(1)
+        
+        #how many seconds long each beat is
+        secondsPerBeat = 1/(bpm[name][0]/60)
+        offset = bpm[name][1] #what units tho??
+
+        subDivision = 1
+        #duration of a quarter/sixteenth/whatever note
+        secondsPerCount = secondsPerBeat/subDivision
+        self.currentBeat = 0
+
         frameIndex = 0
+        data = self.wf.readframes(1)
         while len(data) > 0:
             stream.write(data)
             data = self.wf.readframes(1)
-            #thread = audioThread(1, "soundThread", "otherSounds/tick.wav")
-            #thread.start()
-            #print("beat")
-        # stop stream (4)
+            frameIndex += 1
+            seconds = frameIndex/frameRate #how many seconds in the song is
+            if seconds/secondsPerBeat > self.currentBeat+offset:
+                self.currentBeat += 1/subDivision
+                self.playTick()
+                app.beat(self.currentBeat, subDivision)
+        
+        #stop when done
         stream.stop_stream()
         stream.close()
-
-    def stepMusic(self, size):
-        self.stream.write(self.data)
-        self.framePos += size
-        self.data = self.wf.readframes(size)
+    
+    def playTick(self): #metronome clicks for testing
+        thread = audioThread(1, "soundThread", "otherSounds/tick.wav")
+        thread.start()
 
     def playSound(self, name):
         wf = self.sounds[name]
@@ -97,6 +100,11 @@ class audioDriver(object):
         stream.stop_stream()
         stream.close()
         wf.close()
+    
+    def close(self):
+        self.stream.stop_stream()
+        self.stream.close()
+        self.p.terminate()
 
 #THREADING TUTORIAL: https://www.tutorialspoint.com/python/python_multithreading.htm
 class audioThread(threading.Thread):
@@ -112,6 +120,7 @@ class audioThread(threading.Thread):
    def run(self):
       self.driver.playSound(self.soundName)
 
+
 def testDriver():
     thread = audioThread(1, "soundThread", "hitSounds/HitShortLeft4.wav")
     thread.start()
@@ -120,4 +129,4 @@ def testDriver():
     #driver.playSound("HitLongLeft1.wav")
     #driver.playSound("HitLongLeft2.wav")
 
-testDriver()
+#testDriver()
