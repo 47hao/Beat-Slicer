@@ -7,25 +7,25 @@ import time
 class audioTest(App):
     def appStarted(app):
         app.timerDelay = 1
-        app.driver = audioDriver.audioDriver("all")
+        #app.driver = audioDriver.audioDriver("all")
+        app.beatCount = 0
     
     def timerFired(app):
-        return
-        print(app.driver.currentBeat)
-        if almostEquals(app.driver.currentBeat,app.driver.currentBeat//1):
-            print(app.driver.currentBeat)
+        print(app.beatCount)
     
     def beat(app, beat, subdivision):
-        print(beat)
+        app.beatCount = beat
 
     def playSound(app, name): #Do i need a musicThread? or can I universalize a thread type
         thread = audioDriver.audioThread(1, "soundThread", name)
-        thread.start()
+        thread.start() 
 
     def keyPressed(app, event):
         if event.key == "Space":
-            app.driver.playTrack(app, "VivaLaVida.wav")
-            playSound(app, "HitLongLeft1.wav")
+            thread = audioDriver.musicThread(app, "soundThread", "VivaLaVida.wav")
+            thread.start()
+            #app.driver.playTrack(app, "VivaLaVida.wav")
+            #playSound(app, "HitLongLeft1.wav")
 
     def redrawAll(app, canvas):
         return

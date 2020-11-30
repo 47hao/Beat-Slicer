@@ -6,6 +6,7 @@ import poly3d
 import cube
 import blade
 
+import audioDriver
 import camTracker
 import threading
 
@@ -24,15 +25,18 @@ class Game(App):
 
         app.cubes = []
         app.polys = []
-        cubeSpeed = 8 #pixels/ms, inaccurate due to timer
-        app.cubeVel = cubeSpeed*app.timerDelay
+        app.cubeSpeed = 8 #pixels/beat, inaccurate due to timer
 
         app.grid = grid3d.Grid3d(app, app.focalLength)
 
         #app.testPoly()
-        app.addCube((100,0,0),(0,0,0))
+        #app.addCube((100,0,0),(0,0,0))
 
         app.blade = blade.Blade(app)
+
+        app.beatCount = 0
+        #number of beats a block spawns beforehand
+        app.preSpawnBeats = app.grid.startZ/app.cubeSpeed
 
         app.camThreshold = .9
         app.cam = camTracker.camTracker()
@@ -42,11 +46,12 @@ class Game(App):
         cThread.start()
         #mThread = moveThread(1, "moveThread", app)
         #mThread.start()
+        app.playMusic("VivaLaVida.wav")
     
     def timerFired(app):
         app.ticks += 1
         app.blade.bladeStep()
-        app.makeSampleCubePattern()
+        #app.makeSampleCubePattern()
         app.moveCubes()
         app.bladeSlice()
         if(app.debugMode):
@@ -101,6 +106,7 @@ class Game(App):
         app.cleanCubes()
 
     def sliceCube(app,cube, plane):
+        app.playSound("otherSounds/tick.wav")
         polys = cube.sliceCube(plane)
         if polys == None:
             return False
@@ -111,7 +117,6 @@ class Game(App):
 
     def makeTestCubes(app):
         app.addCube((0,0,-10),(0,0,-1*app.cubeVel))
-
     
     def makeSampleCubePattern(app):
         if(app.ticks*app.timerDelay%600 == 0):
@@ -166,6 +171,19 @@ class Game(App):
             else: #frontmost cubes are lowest indices 
                 return
 
+    def playMusic(app, name):
+        thread = audioDriver.musicThread(app, "soundThread", name)
+        thread.start()
+    
+    def beat(app, beat, subdivision):
+        app.beatCount = beat
+        app.addCube((200,0,app.grid.startZ),
+                                (0,0,-1*app.cubeSpeed))
+
+    def playSound(app, name): #Do i need a musicThread? or can I universalize a thread type
+        thread = audioDriver.audioThread(1, "soundThread", name)
+        thread.start() 
+
     def redrawAll(app, canvas):
         #app.drawBackground(canvas)
         #app.drawGrid(canvas)
@@ -207,16 +225,5 @@ class camThread(threading.Thread):
     def run(self):
         while self.game._running:
             self.game.camTick()
-'''
-class moveThread(threading.Thread):
-    def __init__(self, threadID, name, game):
-        threading.Thread.__init__(self)
-        self.threadID = threadID
-        self.name = name
-        self.game = game
 
-    def run(self):
-        while self.game._running:
-            self.game.moveCubes()
-'''
 Game(width=800,height=600)
