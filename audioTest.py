@@ -1,8 +1,6 @@
 from cmu_112_graphics import *
 import audioDriver
 import time
-    
-
 
 class audioTest(App):
     def appStarted(app):

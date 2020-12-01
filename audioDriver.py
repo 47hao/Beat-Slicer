@@ -4,7 +4,6 @@
 #Viva La Vida track:
 #https://www.youtube.com/watch?v=dvgZkm1xWPE
 
-
 #pyAudio basics: https://people.csail.mit.edu/hubert/pyaudio/docs/#:~:text=To%20use%20PyAudio%2C%20first%20instantiate,PyAudio.
 #synch concepts: https://www.gamasutra.com/blogs/YuChao/20170316/293814/Music_Syncing_in_Rhythm_Games.php
 import pyaudio
@@ -15,15 +14,15 @@ import threading
 import os
 
 import random
-#p = pyaudio.PyAudio()
 
-hitSounds = os.listdir("hitSounds")
-musics = os.listdir("music")
+hitSounds = os.listdir("sounds/hitSounds")
+hitSoundsBad = os.listdir("sounds/hitSoundsBad")
+musics = os.listdir("sounds/music")
 #(bpm, offset(ms))
 bpm = {"VivaLaVida.wav":(138,1.7)}
 
 subDivision = 32
-
+#MOVING ALL AUDIO FILE STRUCTURE
 class audioDriver(object):
     def __init__(self, soundDir):
         self.p = pyaudio.PyAudio()
@@ -32,9 +31,9 @@ class audioDriver(object):
         if soundDir == "all":
             print("LOADING ALL SOUND FILES...")
             for fileName in hitSounds:
-                self.sounds[fileName] = wave.open("hitSounds/" + fileName, 'rb') 
+                self.sounds[fileName] = wave.open("sounds/hitSounds/" + fileName, 'rb') 
             for fileName in musics:
-                self.sounds[fileName] = wave.open("music/" + fileName, 'rb')
+                self.sounds[fileName] = wave.open("sounds/music/" + fileName, 'rb')
             self.sounds["tick"] = wave.open("music/" + fileName, 'rb') 
         else:
             name = soundDir.split("/")
