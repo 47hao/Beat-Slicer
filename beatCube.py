@@ -1,7 +1,7 @@
 import cube
 
 class BeatCube(cube.Cube):
-    def __init__(self,grid,cubeParams,targetBeat,preBeats):
+    def __init__(self,grid,cubeParams,direction,targetBeat,preBeats):
         (pos,vel,sideLength) = cubeParams
         super().__init__(pos,vel,sideLength)
         self.grid = grid

@@ -8,12 +8,13 @@ def getHull(points):
 
     #Source: https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.ConvexHull.html
     hull = ConvexHull(pts)
-
+    volume = hull.volume
     faces = np.ndarray.tolist(hull.simplices)
     #merge a couple times for 5 and 6-sided shapes
     for i in range(2):
         faces = mergeFaces(faces,points)
-    return faces
+    return faces, volume
+
 
 #completely self written code
 def mergeFaces(inputFaces, points):

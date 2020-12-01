@@ -14,12 +14,15 @@ import time
 import threading
 import os
 
+import random
 #p = pyaudio.PyAudio()
 
 hitSounds = os.listdir("hitSounds")
 musics = os.listdir("music")
 #(bpm, offset(ms))
 bpm = {"VivaLaVida.wav":(138,1.7)}
+
+subDivision = 32
 
 class audioDriver(object):
     def __init__(self, soundDir):
@@ -52,7 +55,6 @@ class audioDriver(object):
         secondsPerBeat = 1/(bpm[name][0]/60)
         offset = bpm[name][1] #what units tho??
 
-        subDivision = 16
         #duration of a quarter/sixteenth/whatever note
         secondsPerCount = secondsPerBeat/subDivision
         self.currentBeat = 0
@@ -66,6 +68,7 @@ class audioDriver(object):
             seconds = frameIndex/frameRate #how many seconds in the song is
             if seconds/secondsPerBeat > self.currentBeat+offset:
                 self.currentBeat += 1/subDivision
+                #print(data)
                 #self.playTick()
                 app.beat(self.currentBeat, subDivision)
         
@@ -75,6 +78,11 @@ class audioDriver(object):
     
     def playTick(self): #metronome clicks for testing
         thread = audioThread(1, "soundThread", "otherSounds/tick.wav")
+        thread.start()
+
+    def playHitSound(self):
+        hitSound = random.choice(hitSounds)
+        thread = audioThread(1, "soundThread", "hitSounds/" + hitSound)
         thread.start()
 
     def playSound(self, name):
@@ -135,7 +143,7 @@ def testDriver():
     thread = audioThread(1, "soundThread", "hitSounds/HitShortLeft4.wav")
     thread.start()
     driver = audioDriver("all")
-    driver.playTrack("VivaLaVida.wav")
+    #driver.playTrack("VivaLaVida.wav")
     #driver.playSound("HitLongLeft1.wav")
     #driver.playSound("HitLongLeft2.wav")
 

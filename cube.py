@@ -16,7 +16,7 @@ class Cube(poly3d.Poly3d):
         self.sideLength = sideLength
         self.points = getCubePoints(sideLength)
         super().__init__(pos, vel, self.points)
-        self.outlineWidth = 3
+        self.outlineWidth = 2
 
         self.faces = dict()
         self.setFaces()

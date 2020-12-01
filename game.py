@@ -29,10 +29,6 @@ class Game(App):
         app.cubeSpeed = 12 #pixels/beat, inaccurate due to timer
 
         app.grid = grid3d.Grid3d(app, app.focalLength)
-
-        #app.testPoly()
-        
-
         app.blade = blade.Blade(app)
 
         app.beatCount = 0
@@ -45,10 +41,15 @@ class Game(App):
 
         cThread = camThread(1, "camThread", app)
         cThread.start()
-        #mThread = moveThread(1, "moveThread", app)
-        #mThread.start()
-        #app.addCube((100,0,0),(0,0,0))
+
+        app.driver = audioDriver.audioDriver("all")
         app.playMusic("VivaLaVida.wav")
+
+        app.totalScore = 0
+
+        app.sliceErrorRange = (0,0.5) #by how many beats the player can be off
+        app.timeScoreWeight = 20
+        app.sliceScoreWeight = 20
     
     def timerFired(app):
         app.ticks += 1
@@ -98,24 +99,54 @@ class Game(App):
             cube = app.cubes[i]
             if cube.inSliceZone() and cube.lineInCube(p0, p1):
                 #should always work
-                success = app.sliceCube(cube, plane)
+                result = app.sliceCube(cube, plane)
+                success = result[0]
                 #success = 
-                if(not(success)):
+                if(success):
+                    blockScore = int(result[1])
+                    baseScore = 100-app.sliceScoreWeight-app.timeScoreWeight
+                    totalScore = baseScore + blockScore
+                    app.totalScore += totalScore
+                    print(totalScore)
+                else:
                     i += 1
                 #move on; didn't slice
             else:
                 i += 1
         app.cleanCubes()
 
-    def sliceCube(app,cube, plane):
-        app.playSound("otherSounds/tick.wav")
+    def sliceCube(app, cube, plane):
+        #app.playSound("otherSounds/tick.wav")
+        app.driver.playHitSound()
         polys = cube.sliceCube(plane)
         if polys == None:
-            return False
+            return False, None
         (poly1, poly2) = polys
         app.cubes.pop(app.cubes.index(cube))
         app.polys.extend([poly1,poly2])
-        return True
+
+        score = 0
+
+        if(type(cube) == beatCube.BeatCube): #calculate score
+            #time score:
+            timeDiff = abs(cube.targetBeat-app.beatCount)
+            minError, maxError = app.sliceErrorRange
+            errorPercent = min(timeDiff/(maxError-minError),1)#cap it at 1
+            #^this value ranges from 0-1, with 0 being most accurate
+            timeScore = (1-errorPercent)*app.timeScoreWeight
+            #print("timeScores:", timeScore)
+
+            #slice score:
+            vol1, vol2 = poly1.volume, poly2.volume
+            bigger = max(vol1, vol2)
+            smaller = min(vol1,vol2)
+            sizeRatio = 1-(bigger-smaller)/bigger #ranges 0-1, 0 best 1 worst
+            sliceScore = sizeRatio**0.3*app.sliceScoreWeight #0.5 to 0 range
+            #print("sliceScores:", sliceScore)
+            score = sliceScore + timeScore
+            #give full score up to 1:2 ratio
+
+        return True, score
 
     def makeTestCubes(app):
         app.addCube((0,0,-10),(0,0,-1*app.cubeVel))
@@ -149,9 +180,9 @@ class Game(App):
     def addCube(app, pos, vel):
         app.cubes.append(cube.Cube(pos, vel, app.grid.cubeSize))
 
-    def addBeatCube(app, pos, vel):
+    def addBeatCube(app, pos, vel, direc):
         cubeParams = (pos, vel, app.grid.cubeSize)
-        app.cubes.append(beatCube.BeatCube(app.grid,cubeParams,app.beatCount + 5, 12))
+        app.cubes.append(beatCube.BeatCube(app.grid,cubeParams,direc,app.beatCount+4, 12))
 
     def moveCubes(app):
         beat = app.beatCount
@@ -194,12 +225,12 @@ class Game(App):
                 for i in [1]:
                     x,y = app.grid.getLaneCoords(i, 1)
                     app.addBeatCube((x,y,app.grid.startZ),
-                                    (0,0,-1*app.cubeSpeed))
+                                    (0,0,-1*app.cubeSpeed),"up")
             
             elif int(beat) %2 == 0:
                 x,y = app.grid.getLaneCoords(-1, -1)
                 app.addBeatCube((x,y,app.grid.startZ),
-                                (0,0,-1*app.cubeSpeed))
+                                (0,0,-1*app.cubeSpeed),"up")
             
 
     def playSound(app, name): #Do i need a musicThread? or can I universalize a thread type
@@ -208,6 +239,7 @@ class Game(App):
 
     def redrawAll(app, canvas):
         app.drawBackground(canvas)
+        app.drawScore(canvas)
         #app.drawGrid(canvas)
         #canvas.create_rectangle(10,10,10+app.grid.cubeSize,10+app.grid.cubeSize)
         app.drawPolys(canvas)
@@ -230,6 +262,13 @@ class Game(App):
     def drawPolys(app, canvas): #draw them in the right order
         for i in range(len(app.polys)-1, -1, -1):
             app.polys[i].draw(app.grid, canvas)
+
+    def drawScore(app, canvas):
+        margin = 20
+        t = f"{app.totalScore}"
+        textSize = int(app.width/30)
+        f = f"Montserrat {textSize} bold"
+        canvas.create_text(margin, margin, text=t, font=f, anchor="nw",fill="white")
 
     def drawBackground(app, canvas):
         canvas.create_rectangle(0,0,app.width,app.height,fill="black")

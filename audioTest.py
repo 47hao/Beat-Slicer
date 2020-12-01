@@ -9,10 +9,12 @@ class audioTest(App):
         app.timerDelay = 1
         #app.driver = audioDriver.audioDriver("all")
         app.beatCount = 0
+        
     
-    def timerFired(app):
-        print(app.beatCount)
-    
+    def playMusic(app, name):
+        thread = audioDriver.musicThread(app, "soundThread", name)
+        thread.start()
+
     def beat(app, beat, subdivision):
         app.beatCount = beat
 

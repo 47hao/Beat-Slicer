@@ -17,7 +17,9 @@ class Poly3d(object):
     
     #dictionary of faces
     def getFaces(self):
-        return convexHull.getHull(self.points)
+        result = convexHull.getHull(self.points)
+        self.volume = result[1]
+        return result[0] #actual faces
 
     def getPoints(self):
         return self.points
