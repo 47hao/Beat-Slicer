@@ -8,7 +8,7 @@ class Grid3d(object):
         self.game = game
 
         self.startZ = 3000
-        self.gridWidth = min(game.width,game.height)*2/3
+        self.gridWidth = min(game.width,game.height)*0.4
         self.gridSize = self.gridWidth/3
         self.cubeSize = self.gridSize*0.7
         #app.makeTestCubes()

@@ -16,7 +16,7 @@ class Cube(poly3d.Poly3d):
         self.sideLength = sideLength
         self.points = getCubePoints(sideLength)
         super().__init__(pos, vel, self.points)
-        self.outlineWidth = 2
+        self.outlineWidth = 3
 
         self.faces = dict()
         self.setFaces()
@@ -27,7 +27,7 @@ class Cube(poly3d.Poly3d):
 
     #if z is sliceable
     def inSliceZone(self):
-        return abs(self.pos[2]) <= self.sideLength*3
+        return abs(self.pos[2]) <= self.sideLength*2
 
     def move(self, timerDelay): #no gravity
         (x,y,z) = self.pos
@@ -86,8 +86,9 @@ class Cube(poly3d.Poly3d):
             f,o = "white", "black"
             w = roundHalfUp(0.995**z*self.outlineWidth)
 
-        #if self.inSliceZone(): #indicate cube is in slice zone
-        #    f = "green"
+        if self.inSliceZone(): #indicate cube is in slice zone
+            pass
+            #f = "green"
 
         #reassemble/reorder faceList?
         c = self.pos #centroid
@@ -98,6 +99,7 @@ class Cube(poly3d.Poly3d):
             converted = []
             for p in globPoints:
                 converted.append(grid.to2d(p))
+            #print("drawn")
             canvas.create_polygon(converted,fill=f,outline=o, width = w)
     
     def sliceCube(self, plane):

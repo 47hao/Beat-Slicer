@@ -16,11 +16,11 @@ import threading
 
 class Game(App):
     def appStarted(app):
-        app.debugMode = True
+        app.debugMode = False
         app.maxThreads = 4
         app.runThreads = True
 
-        app.focalLength = 400
+        app.focalLength = 600
         app.ticks = 0
         app.timerDelay = 1
 
@@ -48,7 +48,7 @@ class Game(App):
         #mThread = moveThread(1, "moveThread", app)
         #mThread.start()
         #app.addCube((100,0,0),(0,0,0))
-        #app.playMusic("VivaLaVida.wav")
+        app.playMusic("VivaLaVida.wav")
     
     def timerFired(app):
         app.ticks += 1
@@ -92,7 +92,7 @@ class Game(App):
 
     def sliceAllCubes(app, p0, p1):
         (x0,y0),(x1,y1) = p0, p1
-        plane = slice3d.pointsToPlane((x0,y0,0),(x1,y1,0),(0,0,-1000))
+        plane = slice3d.pointsToPlane((x0,y0,0),(x1,y1,0),(0,0,-1*app.grid.focalLength/2))
         i = 0
         while i < len(app.cubes):
             cube = app.cubes[i]
@@ -149,9 +149,16 @@ class Game(App):
     def addCube(app, pos, vel):
         app.cubes.append(cube.Cube(pos, vel, app.grid.cubeSize))
 
+    def addBeatCube(app, pos, vel):
+        cubeParams = (pos, vel, app.grid.cubeSize)
+        app.cubes.append(beatCube.BeatCube(app.grid,cubeParams,app.beatCount + 5, 12))
+
     def moveCubes(app):
+        beat = app.beatCount
         for cube in app.cubes:
-            cube.move(app.timerDelay)
+            pass
+            #cube.updatePos(app.grid, beat)
+            #cube.move(app.timerDelay)
         for poly in app.polys:
             poly.move(app.timerDelay)
 
@@ -179,19 +186,32 @@ class Game(App):
     
     def beat(app, beat, subdivision):
         app.beatCount = beat
-        #app.addCube((200,0,app.grid.startZ),
-        #                        (0,0,-1*app.cubeSpeed))
+        
+        for cube in app.cubes:
+            cube.updatePos(app.grid, beat)
+        if almostEquals(beat, int(beat)):
+            if int(beat) %2 == 1:
+                for i in [1]:
+                    x,y = app.grid.getLaneCoords(i, 1)
+                    app.addBeatCube((x,y,app.grid.startZ),
+                                    (0,0,-1*app.cubeSpeed))
+            
+            elif int(beat) %2 == 0:
+                x,y = app.grid.getLaneCoords(-1, -1)
+                app.addBeatCube((x,y,app.grid.startZ),
+                                (0,0,-1*app.cubeSpeed))
+            
 
     def playSound(app, name): #Do i need a musicThread? or can I universalize a thread type
         thread = audioDriver.audioThread(1, "soundThread", name)
         thread.start() 
 
     def redrawAll(app, canvas):
-        #app.drawBackground(canvas)
+        app.drawBackground(canvas)
         #app.drawGrid(canvas)
         #canvas.create_rectangle(10,10,10+app.grid.cubeSize,10+app.grid.cubeSize)
-        app.drawCubes(canvas)
         app.drawPolys(canvas)
+        app.drawCubes(canvas)
         #app.drawSlice(canvas)
         app.blade.draw(canvas)
         if(app.debugMode):
@@ -217,6 +237,12 @@ class Game(App):
     def closeApp(app):
         pass
 
+def almostEquals(a,b):
+    epsilon = 10**-5
+    if abs(a-b) <= epsilon:
+        return True
+    return False
+
 class camThread(threading.Thread):
     def __init__(self, threadID, name, game):
         threading.Thread.__init__(self)
@@ -228,4 +254,4 @@ class camThread(threading.Thread):
         while self.game._running:
             self.game.camTick()
 
-Game(width=800,height=600)
+Game(width=1200,height=800)

@@ -52,7 +52,7 @@ class audioDriver(object):
         secondsPerBeat = 1/(bpm[name][0]/60)
         offset = bpm[name][1] #what units tho??
 
-        subDivision = 1
+        subDivision = 16
         #duration of a quarter/sixteenth/whatever note
         secondsPerCount = secondsPerBeat/subDivision
         self.currentBeat = 0
@@ -66,7 +66,7 @@ class audioDriver(object):
             seconds = frameIndex/frameRate #how many seconds in the song is
             if seconds/secondsPerBeat > self.currentBeat+offset:
                 self.currentBeat += 1/subDivision
-                self.playTick()
+                #self.playTick()
                 app.beat(self.currentBeat, subDivision)
         
         #stop when done

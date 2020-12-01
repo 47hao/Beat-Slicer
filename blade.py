@@ -31,7 +31,7 @@ class Blade(object):
     def draw(self, canvas):
         for i in range(len(self.points)-1):
             (x0,y0),(x1,y1) = self.points[i], self.points[i+1]
-            canvas.create_line(x0,y0,x1,y1, width=2)
+            canvas.create_line(x0,y0,x1,y1, width=4, fill="white")
             
 
 def dist(x0,y0,x1,y1):
