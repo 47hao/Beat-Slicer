@@ -6,6 +6,7 @@ import poly3d
 import cube
 import beatCube
 import blade
+import math
 
 import audioDriver
 import camTracker
@@ -98,13 +99,18 @@ class Game(App):
         while i < len(app.cubes):
             cube = app.cubes[i]
             if cube.inSliceZone() and cube.lineInCube(p0, p1):
-                #should always work
+                #should always 
+                (x0, y0),(x1, y1) = p0,p1
                 result = app.sliceCube(cube, plane)
                 success = result[0]
                 #success = 
-                if(success):
-                    score = int(result[1])
-                    app.totalScore += score
+                if success and type(cube) == beatCube.BeatCube:
+                    if cube.checkDir(p0, p1):
+                        app.driver.playHitSound()
+                        score = int(result[1])
+                        app.totalScore += score
+                    else: #wrong direction
+                        pass
                 else:
                     i += 1
                 #move on; didn't slice
@@ -114,7 +120,7 @@ class Game(App):
 
     def sliceCube(app, cube, plane):
         #app.playSound("otherSounds/tick.wav")
-        app.driver.playHitSound()
+        #app.driver.playHitSound()
         polys = cube.sliceCube(plane)
         if polys == None:
             return False, None

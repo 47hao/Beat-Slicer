@@ -28,6 +28,18 @@ class BeatCube(cube.Cube):
 
         self.drawArrow(converted, canvas)
     
+    def checkDir(self, p0, p1):
+        (x0, y0),(x1,y1) = p0, p1 
+        slope = (y1-y0)/(x1-x0)
+        if self.direction == "down":
+            return abs(slope) > 1 and y1>y0
+        elif self.direction == "up":
+            return abs(slope) > 1 and y1<y0
+        elif self.direction == "left":
+            return abs(slope) < 1 and x1>x0
+        elif self.direction == "right":
+            return abs(slope) < 1 and x1<x0
+
     def drawArrow(self, points, canvas):
         #print(points)
         (p0, p1, p2, p3) = points
