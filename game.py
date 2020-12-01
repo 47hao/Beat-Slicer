@@ -4,6 +4,7 @@ import grid3d
 import slice3d
 import poly3d
 import cube
+import beatCube
 import blade
 
 import audioDriver
@@ -25,12 +26,12 @@ class Game(App):
 
         app.cubes = []
         app.polys = []
-        app.cubeSpeed = 8 #pixels/beat, inaccurate due to timer
+        app.cubeSpeed = 12 #pixels/beat, inaccurate due to timer
 
         app.grid = grid3d.Grid3d(app, app.focalLength)
 
         #app.testPoly()
-        #app.addCube((100,0,0),(0,0,0))
+        
 
         app.blade = blade.Blade(app)
 
@@ -46,7 +47,8 @@ class Game(App):
         cThread.start()
         #mThread = moveThread(1, "moveThread", app)
         #mThread.start()
-        app.playMusic("VivaLaVida.wav")
+        #app.addCube((100,0,0),(0,0,0))
+        #app.playMusic("VivaLaVida.wav")
     
     def timerFired(app):
         app.ticks += 1
@@ -124,13 +126,13 @@ class Game(App):
                 for col in [-1,1]:
                     (x,y) = app.grid.getLaneCoords(row, col)
                     app.addCube((x,y,app.grid.startZ),
-                                (0,0,-1*app.cubeVel))
+                                (0,0,-1*app.cubeSpeed))
         if(app.ticks*app.timerDelay%600 == 300):
             for row in [-1, 1]:
                 for col in [-1, 0, 1]:
                     (x,y) = app.grid.getLaneCoords(row, col)
                     app.addCube((x,y,app.grid.startZ),
-                                (0,0,-1*app.cubeVel))
+                                (0,0,-1*app.cubeSpeed))
     
     def makeSampleCubePattern2(app):
         if(app.ticks*app.timerDelay%600 == 0):
@@ -177,8 +179,8 @@ class Game(App):
     
     def beat(app, beat, subdivision):
         app.beatCount = beat
-        app.addCube((200,0,app.grid.startZ),
-                                (0,0,-1*app.cubeSpeed))
+        #app.addCube((200,0,app.grid.startZ),
+        #                        (0,0,-1*app.cubeSpeed))
 
     def playSound(app, name): #Do i need a musicThread? or can I universalize a thread type
         thread = audioDriver.audioThread(1, "soundThread", name)
