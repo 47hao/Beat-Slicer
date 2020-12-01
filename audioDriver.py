@@ -32,12 +32,14 @@ class audioDriver(object):
             print("LOADING ALL SOUND FILES...")
             for fileName in hitSounds:
                 self.sounds[fileName] = wave.open("sounds/hitSounds/" + fileName, 'rb') 
+            for fileName in hitSoundsBad:
+                self.sounds[fileName] = wave.open("sounds/hitSoundsBad/" + fileName, 'rb') 
             for fileName in musics:
                 self.sounds[fileName] = wave.open("sounds/music/" + fileName, 'rb')
-            self.sounds["tick"] = wave.open("music/" + fileName, 'rb') 
+            self.sounds["tick"] = wave.open("sounds/other/tick.wav", 'rb') 
         else:
             name = soundDir.split("/")
-            self.sounds[name[len(name)-1]] = wave.open(soundDir, 'rb')
+            self.sounds[name[len(name)-1]] = wave.open("sounds/" + soundDir, 'rb')
     
     def playTrack(self, app, name):
         print("LOADING:", name)
@@ -76,12 +78,17 @@ class audioDriver(object):
         stream.close()
     
     def playTick(self): #metronome clicks for testing
-        thread = audioThread(1, "soundThread", "otherSounds/tick.wav")
+        thread = audioThread(1, "soundThread", "other/tick.wav")
         thread.start()
 
     def playHitSound(self):
         hitSound = random.choice(hitSounds)
         thread = audioThread(1, "soundThread", "hitSounds/" + hitSound)
+        thread.start()
+    
+    def playBadHitSound(self):
+        sound = random.choice(hitSoundsBad)
+        thread = audioThread(1, "soundThread", "hitSoundsBad/" + sound)
         thread.start()
 
     def playSound(self, name):

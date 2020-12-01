@@ -110,6 +110,7 @@ class Game(App):
                         score = int(result[1])
                         app.totalScore += score
                     else: #wrong direction
+                        app.driver.playBadHitSound()
                         pass
                 else:
                     i += 1
@@ -119,8 +120,6 @@ class Game(App):
         app.cleanCubes()
 
     def sliceCube(app, cube, plane):
-        #app.playSound("otherSounds/tick.wav")
-        #app.driver.playHitSound()
         polys = cube.sliceCube(plane)
         if polys == None:
             return False, None

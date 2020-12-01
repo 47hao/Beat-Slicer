@@ -6,7 +6,7 @@ class Blade(object):
     def __init__(self, game):
         self.points = []
         self.game = game
-        self.maxLength = 100
+        self.maxLength = 300
         self.bladeTicks = 0
         self.removeDelay = 2
         self.minPoints = 4
