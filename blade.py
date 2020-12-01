@@ -10,6 +10,7 @@ class Blade(object):
         self.bladeTicks = 0
         self.removeDelay = 2
         self.minPoints = 4
+        self.maxPoints = 10
 
     def bladeStep(self):
         self.bladeTicks += 1
@@ -24,6 +25,8 @@ class Blade(object):
         if(len(self.points) > self.minPoints):
             if(self.bladeTicks%self.removeDelay == 0):
                 self.points.pop()
+        if(len(self.points) > self.maxPoints):
+            self.points.pop()
 
     def insertPoint(self,p):
         self.points.insert(0,p)

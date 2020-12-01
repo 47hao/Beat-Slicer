@@ -103,11 +103,8 @@ class Game(App):
                 success = result[0]
                 #success = 
                 if(success):
-                    blockScore = int(result[1])
-                    baseScore = 100-app.sliceScoreWeight-app.timeScoreWeight
-                    totalScore = baseScore + blockScore
-                    app.totalScore += totalScore
-                    print(totalScore)
+                    score = int(result[1])
+                    app.totalScore += score
                 else:
                     i += 1
                 #move on; didn't slice
@@ -126,27 +123,31 @@ class Game(App):
         app.polys.extend([poly1,poly2])
 
         score = 0
-
         if(type(cube) == beatCube.BeatCube): #calculate score
-            #time score:
-            timeDiff = abs(cube.targetBeat-app.beatCount)
-            minError, maxError = app.sliceErrorRange
-            errorPercent = min(timeDiff/(maxError-minError),1)#cap it at 1
-            #^this value ranges from 0-1, with 0 being most accurate
-            timeScore = (1-errorPercent)*app.timeScoreWeight
-            #print("timeScores:", timeScore)
-
-            #slice score:
-            vol1, vol2 = poly1.volume, poly2.volume
-            bigger = max(vol1, vol2)
-            smaller = min(vol1,vol2)
-            sizeRatio = 1-(bigger-smaller)/bigger #ranges 0-1, 0 best 1 worst
-            sliceScore = sizeRatio**0.3*app.sliceScoreWeight #0.5 to 0 range
-            #print("sliceScores:", sliceScore)
-            score = sliceScore + timeScore
-            #give full score up to 1:2 ratio
+            score = app.calculateScore(cube, poly1, poly2)
 
         return True, score
+    
+    def calculateScore(app, cube, poly1, poly2):
+        #time score:
+        timeDiff = abs(cube.targetBeat-app.beatCount)
+        minError, maxError = app.sliceErrorRange
+        errorPercent = min(timeDiff/(maxError-minError),1)#cap it at 1
+        #^this value ranges from 0-1, with 0 being most accurate
+        timeScore = (1-errorPercent)*app.timeScoreWeight
+        #print("timeScores:", timeScore)
+
+        #slice score:
+        vol1, vol2 = poly1.volume, poly2.volume
+        bigger = max(vol1, vol2)
+        smaller = min(vol1,vol2)
+        sizeRatio = 1-(bigger-smaller)/bigger #ranges 0-1, 0 best 1 worst
+        sliceScore = sizeRatio**0.3*app.sliceScoreWeight #0.5 to 0 range
+        #print("sliceScores:", sliceScore)
+        baseScore = 100-app.sliceScoreWeight-app.timeScoreWeight
+        totalScore = baseScore + sliceScore + timeScore
+        return totalScore
+        #give full score up to 1:2 ratio
 
     def makeTestCubes(app):
         app.addCube((0,0,-10),(0,0,-1*app.cubeVel))
@@ -225,12 +226,12 @@ class Game(App):
                 for i in [1]:
                     x,y = app.grid.getLaneCoords(i, 1)
                     app.addBeatCube((x,y,app.grid.startZ),
-                                    (0,0,-1*app.cubeSpeed),"up")
+                                    (0,0,-1*app.cubeSpeed),"left")
             
             elif int(beat) %2 == 0:
                 x,y = app.grid.getLaneCoords(-1, -1)
                 app.addBeatCube((x,y,app.grid.startZ),
-                                (0,0,-1*app.cubeSpeed),"up")
+                                (0,0,-1*app.cubeSpeed),"right")
             
 
     def playSound(app, name): #Do i need a musicThread? or can I universalize a thread type
