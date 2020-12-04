@@ -14,10 +14,13 @@ import threading
 
 #This project uses cmu_112_graphics, based on tkinter:
 #https://www.cs.cmu.edu/~112/
-
-class Game(App):
+#ModalApp from 112 animations part 3 notes
+    
+#app = mode, didn't want to change it all
+class Game(Mode):
     def appStarted(app):
-        app.debugMode = True
+        app.running = True
+        app.debugMode = False
         app.maxThreads = 4
         app.runThreads = True
 
@@ -44,22 +47,34 @@ class Game(App):
         cThread.start()
 
         app.driver = audioDriver.audioDriver("all")
-        app.playMusic("VivaLaVida.wav")
+        app.playMusic("VivaShort.wav")
 
         app.totalScore = 0
+        app.totalCubes = 0
+        app.goodSlices = 0
+        app.badSlices = 0
 
         app.sliceErrorRange = (0,0.5) #by how many beats the player can be off
         app.timeScoreWeight = 20
         app.sliceScoreWeight = 20
+
     
     def timerFired(app):
         app.ticks += 1
+        if app.ticks % 100 == 0:
+            app.cleanCubes()
+
         app.blade.bladeStep()
         #app.makeSampleCubePattern()
         app.moveCubes()
         app.bladeSlice()
+
         if(app.debugMode):
             app.cam.showFrame()
+            print("DEBUG INFO ======")
+            print(f"blade points: {len(app.blade.points)}")
+            print(f"cubes: {len(app.cubes)}")
+            print(f"polys: {len(app.polys)}")
 
     def camTick(app):
         output = app.cam.getCoords(app.camThreshold, app.debugMode)
@@ -109,9 +124,10 @@ class Game(App):
                         app.driver.playHitSound()
                         score = int(result[1])
                         app.totalScore += score
+                        app.goodSlices += 1
                     else: #wrong direction
                         app.driver.playBadHitSound()
-                        pass
+                        app.badSlices += 1
                 else:
                     i += 1
                 #move on; didn't slice
@@ -189,6 +205,7 @@ class Game(App):
     def addBeatCube(app, pos, vel, direc):
         cubeParams = (pos, vel, app.grid.cubeSize)
         app.cubes.append(beatCube.BeatCube(app.grid,cubeParams,direc,app.beatCount+4, 12))
+        app.totalCubes += 1
 
     def moveCubes(app):
         beat = app.beatCount
@@ -218,7 +235,7 @@ class Game(App):
                 return
 
     def playMusic(app, name):
-        thread = audioDriver.musicThread(app, "soundThread", name)
+        thread = audioDriver.musicThread(app.app, "soundThread", name)
         thread.start()
     
     def beat(app, beat, subdivision):
@@ -238,7 +255,6 @@ class Game(App):
                 app.addBeatCube((x,y,app.grid.startZ),
                                 (0,0,-1*app.cubeSpeed),"right")
             
-
     def playSound(app, name): #Do i need a musicThread? or can I universalize a thread type
         thread = audioDriver.audioThread(1, "soundThread", name)
         thread.start() 
@@ -279,14 +295,59 @@ class Game(App):
     def drawBackground(app, canvas):
         canvas.create_rectangle(0,0,app.width,app.height,fill="black")
     
+    def endSong(app):
+        #reset songover screen
+        app.app.scoreData = (app.totalScore,app.totalCubes,app.goodSlices,
+                            app.badSlices)
+        app.app.songOverMode = SongOver()
+        app.app.setActiveMode(app.app.songOverMode)
+
+    def closeApp(app):
+        print("GAME SHUTDOWN")
+        app.running = False
+
+
+class SplashScreen(Mode):
+    #Copypasted https://www.cs.cmu.edu/~112/notes/notes-animations-part3.html#subclassingModalApp
+    def redrawAll(mode, canvas):
+        font = 'Arial 26 bold'
+        canvas.create_text(mode.width/2, 150, text='Beat Slicer', font=font)
+        canvas.create_text(mode.width/2, 200, text='hehe', font=font)
+        canvas.create_text(mode.width/2, 250, text='Press any key for the game!', font=font)
+
+    def keyPressed(mode, event):
+        mode.app.setActiveMode(mode.app.gameMode)
+
+class SongOver(Mode):
+    def appStarted(mode):
+        #shut down the game
+        mode.app.gameMode.closeApp()
+        (mode.score, mode.cubes, mode.good, mode.bad) = mode.app.scoreData
+        
+    def redrawAll(mode, canvas):
+        font = 'Arial 26 bold'
+        canvas.create_text(mode.width/2, 150, text='Song Over!', font=font)
+        canvas.create_text(mode.width/2, 200, text=f'Score:{mode.score}', font=font)
+        canvas.create_text(mode.width/2, 250, text=f'Cubes Sliced:{mode.good+mode.bad}/{mode.cubes}', font=font)
+        canvas.create_text(mode.width/2, 300, text=f'Good Slices:{mode.good}/{mode.good+mode.bad}', font=font)
+    def keyPressed(mode, event):
+        mode.app.gameMode = Game()
+        mode.app.setActiveMode(mode.app.gameMode)
+
+class Calibration(Mode):
+    pass
+
+class ModalApp(ModalApp):
+    def appStarted(app):
+        app.splashScreenMode = SplashScreen()
+        app.calibrationMode = Calibration()
+        app.gameMode = Game()
+        #app.songOverMode = SongOver() initialization needs game over
+        app.setActiveMode(app.splashScreenMode)
+        app.timerDelay = 2
+
     def closeApp(app):
         pass
-
-def almostEquals(a,b):
-    epsilon = 10**-5
-    if abs(a-b) <= epsilon:
-        return True
-    return False
 
 class camThread(threading.Thread):
     def __init__(self, threadID, name, game):
@@ -296,7 +357,15 @@ class camThread(threading.Thread):
         self.game = game
 
     def run(self):
-        while self.game._running:
+        while self.game.running:#app._running:
             self.game.camTick()
+        print("CAMERA THREAD STOPPED")
 
-Game(width=1200,height=800)
+def almostEquals(a,b):
+    epsilon = 10**-5
+    if abs(a-b) <= epsilon:
+        return True
+    return False
+
+ModalApp(width=1200,height=800)
+#Game(width=1200,height=800)

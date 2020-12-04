@@ -71,7 +71,10 @@ class camTracker(object):
     def getCoords(self, threshold, showDebug):
         self.counter += 1
         #print(threshold)
-        ret, frame = self.cap.read()
+        try:
+            ret, frame = self.cap.read()
+        except:
+            return None
         #frame = cropImage(frame, 0, 0)
         filtered = filterLight(frame, threshold)#process data
 

@@ -19,7 +19,7 @@ hitSounds = os.listdir("sounds/hitSounds")
 hitSoundsBad = os.listdir("sounds/hitSoundsBad")
 musics = os.listdir("sounds/music")
 #(bpm, offset(ms))
-bpm = {"VivaLaVida.wav":(138,1.7)}
+bpm = {"VivaLaVida.wav":(138,1.7),"VivaShort.wav":(138,1.7)}
 
 subDivision = 32
 #MOVING ALL AUDIO FILE STRUCTURE
@@ -62,6 +62,7 @@ class audioDriver(object):
 
         frameIndex = 0
         data = self.wf.readframes(1)
+        print("running:", app._running)
         while len(data) > 0 and app._running:
             stream.write(data)
             data = self.wf.readframes(1)
@@ -69,10 +70,10 @@ class audioDriver(object):
             seconds = frameIndex/frameRate #how many seconds in the song is
             if seconds/secondsPerBeat > self.currentBeat+offset:
                 self.currentBeat += 1/subDivision
-                #print(data)
                 #self.playTick()
-                app.beat(self.currentBeat, subDivision)
+                app.gameMode.beat(self.currentBeat, subDivision)
         
+        app.gameMode.endSong()
         #stop when done
         stream.stop_stream()
         stream.close()

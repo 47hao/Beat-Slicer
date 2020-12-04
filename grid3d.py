@@ -7,7 +7,7 @@ class Grid3d(object):
         self.focalLength = focal#min(app.width,app.height)*0.95
         self.game = game
 
-        self.startZ = 3000
+        self.startZ = 6000
         self.gridWidth = min(game.width,game.height)*0.4
         self.gridSize = self.gridWidth/3
         self.cubeSize = self.gridSize*0.7
