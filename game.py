@@ -30,14 +30,14 @@ class Game(Mode):
 
         app.cubes = []
         app.polys = []
-        app.cubeSpeed = 12 #pixels/beat, inaccurate due to timer
+        app.cubeSpeed = 10 #no units
 
         app.grid = grid3d.Grid3d(app, app.focalLength)
         app.blade = blade.Blade(app)
 
         app.beatCount = 0
         #number of beats a block spawns beforehand
-        app.preSpawnBeats = app.grid.startZ/app.cubeSpeed
+        app.preSpawnBeats = 8#app.grid.startZ/app.cubeSpeed
 
         app.camThreshold = .9
         app.cam = camTracker.camTracker()
@@ -204,7 +204,8 @@ class Game(Mode):
 
     def addBeatCube(app, pos, vel, direc):
         cubeParams = (pos, vel, app.grid.cubeSize)
-        app.cubes.append(beatCube.BeatCube(app.grid,cubeParams,direc,app.beatCount+4, 12))
+        app.cubes.append(beatCube.BeatCube(app.grid,cubeParams,direc,
+                        app.beatCount+app.preSpawnBeats, app.preSpawnBeats))
         app.totalCubes += 1
 
     def moveCubes(app):
