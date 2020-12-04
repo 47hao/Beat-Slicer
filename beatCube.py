@@ -30,7 +30,11 @@ class BeatCube(cube.Cube):
     
     def checkDir(self, p0, p1):
         (x0, y0),(x1,y1) = p0, p1 
-        slope = (y1-y0)/(x1-x0)
+        if x1 == x0:
+            denom = 10^-10
+        else:
+            denom = x1-x0
+        slope = (y1-y0)/denom
         if self.direction == "down":
             return abs(slope) > 1 and y1>y0
         elif self.direction == "up":

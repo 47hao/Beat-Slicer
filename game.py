@@ -17,7 +17,7 @@ import threading
 
 class Game(App):
     def appStarted(app):
-        app.debugMode = False
+        app.debugMode = True
         app.maxThreads = 4
         app.runThreads = True
 
