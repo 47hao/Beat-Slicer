@@ -11,29 +11,25 @@ class Blade(object):
         self.removeDelay = 2
         self.minPoints = 4
         self.maxPoints = 10
+        self.pointTime = 100 #milliseconds
 
     def bladeStep(self):
         self.bladeTicks += 1
         lengthUsed = 0
         i = 0
-        while i < len(self.points)-1 and lengthUsed < self.maxLength:
-            (x0, y0), (x1,y1) = self.points[i], self.points[i+1]
-            lengthUsed += dist(x0,y0,x1,y1)
-            i += 1
-        if lengthUsed > self.maxLength:
-            self.points = self.points[:i] #chop off extra long points
-        if(len(self.points) > self.minPoints):
-            if(self.bladeTicks%self.removeDelay == 0):
-                self.points.pop()
-        if(len(self.points) > self.maxPoints):
-            self.points.pop()
+        while i < len(self.points):
+            startTime = self.points[i][1]
+            if (time.time() - startTime)*1000 > self.pointTime:
+                self.points.pop(i)
+            else:
+                i += 1
 
     def insertPoint(self,p):
-        self.points.insert(0,p)
+        self.points.insert(0,(p,time.time()))
     
     def draw(self, canvas):
         for i in range(len(self.points)-1):
-            (x0,y0),(x1,y1) = self.points[i], self.points[i+1]
+            (x0,y0),(x1,y1) = self.points[i][0], self.points[i+1][0]
             canvas.create_line(x0,y0,x1,y1, width=4, fill="white")
             
 

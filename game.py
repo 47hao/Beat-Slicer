@@ -68,7 +68,7 @@ class Game(App):
             x = app.width*(1-xScale) #camera's flipped
             y = app.height*yScale
             #add point to blade
-            app.blade.points.insert(0,(x,y))
+            app.blade.insertPoint((x,y))
     
     def countCamThreads(app):
         threads = threading.enumerate()
@@ -87,7 +87,7 @@ class Game(App):
 
     def bladeSlice(app):
         for i in range(len(app.blade.points)-1):
-            (x0,y0), (x1,y1) = app.blade.points[i], app.blade.points[i+1]
+            (x0,y0), (x1,y1) = app.blade.points[i][0], app.blade.points[i+1][0]
             #convert coords to 3-space and not screen space
             app.sliceAllCubes((x0-app.width/2,y0-app.height/2),
                                 (x1-app.width/2,y1-app.height/2))
