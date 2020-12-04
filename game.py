@@ -8,6 +8,8 @@ import beatCube
 import blade
 import math
 
+from maps import VivaLaVida
+
 import audioDriver
 import camTracker
 import threading
@@ -47,7 +49,6 @@ class Game(Mode):
         cThread.start()
 
         app.driver = audioDriver.audioDriver("all")
-        app.playMusic("VivaShort.wav")
 
         app.totalScore = 0
         app.totalCubes = 0
@@ -58,7 +59,19 @@ class Game(Mode):
         app.timeScoreWeight = 20
         app.sliceScoreWeight = 20
 
-    
+        app.songName = app.app.song
+        app.loadSong()
+
+    def loadSong(app):
+        app.notes = dict()
+        contents = readFile("maps/" + app.songName + ".py")
+        data = VivaLaVida.beatMap()
+        for note in data:
+            beat = note.beat
+            app.notes[beat] = app.notes.get(beat,[]) + [note]
+        print(app.notes)
+        app.playMusic("VivaShort.wav")
+
     def timerFired(app):
         app.ticks += 1
         if app.ticks % 100 == 0:
@@ -76,15 +89,6 @@ class Game(Mode):
             print(f"cubes: {len(app.cubes)}")
             print(f"polys: {len(app.polys)}")
 
-    def camTick(app):
-        output = app.cam.getCoords(app.camThreshold, app.debugMode)
-        if(output != None):
-            (xScale, yScale) = output
-            x = app.width*(1-xScale) #camera's flipped
-            y = app.height*yScale
-            #add point to blade
-            app.blade.insertPoint((x,y))
-    
     def countCamThreads(app):
         threads = threading.enumerate()
         count = 0
@@ -172,33 +176,17 @@ class Game(Mode):
 
     def makeTestCubes(app):
         app.addCube((0,0,-10),(0,0,-1*app.cubeVel))
-    
-    def makeSampleCubePattern(app):
-        if(app.ticks*app.timerDelay%600 == 0):
-            for row in [-1,0,1]:
-                for col in [-1,1]:
-                    (x,y) = app.grid.getLaneCoords(row, col)
-                    app.addCube((x,y,app.grid.startZ),
-                                (0,0,-1*app.cubeSpeed))
-        if(app.ticks*app.timerDelay%600 == 300):
-            for row in [-1, 1]:
-                for col in [-1, 0, 1]:
-                    (x,y) = app.grid.getLaneCoords(row, col)
-                    app.addCube((x,y,app.grid.startZ),
-                                (0,0,-1*app.cubeSpeed))
-    
-    def makeSampleCubePattern2(app):
-        if(app.ticks*app.timerDelay%600 == 0):
-            for col in [-1,1]:
-                (x,y) = app.grid.getLaneCoords(0, col)
-                app.addCube((x,y,app.grid.startZ),
-                                (0,0,-1*app.cubeVel))
-        if(app.ticks*app.timerDelay%600 == 300):
-            for row in [-1, 1]:
-                (x,y) = app.grid.getLaneCoords(row, 0)
-                app.addCube((x,y,app.grid.startZ),
-                            (0,0,-1*app.cubeVel))
 
+    def addCubes(app, beat): #att beat 20, queue beat 24's cubes
+        queueBeat = beat+app.preSpawnBeats
+        if queueBeat in app.notes:
+            for item in app.notes[queueBeat]:
+                pos,direc = item.pos, item.direc
+                
+                cubeParams = (pos, vel, app.grid.cubeSize)
+                cube = beatCube.BeatCube(app.grid,cubeParams,direc,
+                        queueBeat, app.preSpawnBeats)
+            
     def addCube(app, pos, vel):
         app.cubes.append(cube.Cube(pos, vel, app.grid.cubeSize))
 
@@ -295,13 +283,22 @@ class Game(Mode):
 
     def drawBackground(app, canvas):
         canvas.create_rectangle(0,0,app.width,app.height,fill="black")
-    
+
     def endSong(app):
         #reset songover screen
         app.app.scoreData = (app.totalScore,app.totalCubes,app.goodSlices,
                             app.badSlices)
         app.app.songOverMode = SongOver()
         app.app.setActiveMode(app.app.songOverMode)
+
+    def camTick(app):
+        output = app.cam.getCoords(app.camThreshold, app.debugMode)
+        if(output != None):
+            (xScale, yScale) = output
+            x = app.width*(1-xScale) #camera's flipped
+            y = app.height*yScale
+            #add point to blade
+            app.blade.insertPoint((x,y))
 
     def closeApp(app):
         print("GAME SHUTDOWN")
@@ -342,6 +339,7 @@ class ModalApp(ModalApp):
     def appStarted(app):
         app.splashScreenMode = SplashScreen()
         app.calibrationMode = Calibration()
+        app.song = "VivaLaVida"
         app.gameMode = Game()
         #app.songOverMode = SongOver() initialization needs game over
         app.setActiveMode(app.splashScreenMode)
@@ -367,6 +365,11 @@ def almostEquals(a,b):
     if abs(a-b) <= epsilon:
         return True
     return False
+
+#cmu 112 notes: string functions
+def readFile(path):
+    with open(path, "rt") as f:
+        return f.read()
 
 ModalApp(width=1200,height=800)
 #Game(width=1200,height=800)
