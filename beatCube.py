@@ -57,19 +57,19 @@ class BeatCube(cube.Cube):
         c2, c3 = (p2[0]-m,p2[1]-m),(p3[0]+m,p3[1]-m)
         b = m/2 #arrow body height
         p = m*2 #arrow tip size
-        if self.direction == "down":
+        if self.direction == "d":
             midX = (c0[0]+c1[0])//2
             arrowPoints = [ c0,c1,(c1[0],c1[1]+b),
                 (midX, c0[1]+b+p),(c0[0],c0[1]+b)]
-        elif self.direction == "up":
+        elif self.direction == "u":
             midX = (c0[0]+c1[0])//2
             arrowPoints = [ c3,c2,(c2[0],c2[1]-b),
                 (midX, c2[1]-b-p),(c3[0],c3[1]-b)]
-        elif self.direction == "left":
+        elif self.direction == "l":
             midY = (c1[1]+c2[1])//2
             arrowPoints = [c1,c2,(c2[0]-b,c2[1]),
                 (c2[0]-b-p, midY),(c1[0]-b,c1[1])]
-        elif self.direction == "right":
+        elif self.direction == "r":
             midY = (c1[1]+c2[1])//2
             arrowPoints = [c0,c3,(c3[0]+b,c3[1]),
                 (c0[0]+b+p, midY),(c0[0]+b,c0[1])]

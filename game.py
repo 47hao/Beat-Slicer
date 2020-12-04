@@ -181,11 +181,14 @@ class Game(Mode):
         queueBeat = beat+app.preSpawnBeats
         if queueBeat in app.notes:
             for item in app.notes[queueBeat]:
-                pos,direc = item.pos, item.direc
-                
+                (xcol,yrow),direc = item.pos, item.direc
+                (x,y) = app.grid.getLaneCoords(xcol, yrow)
+                pos = (x,y,app.grid.startZ)
+                vel = (0,0,-1*app.cubeSpeed)
                 cubeParams = (pos, vel, app.grid.cubeSize)
                 cube = beatCube.BeatCube(app.grid,cubeParams,direc,
                         queueBeat, app.preSpawnBeats)
+                app.cubes.append(cube)
             
     def addCube(app, pos, vel):
         app.cubes.append(cube.Cube(pos, vel, app.grid.cubeSize))
@@ -229,9 +232,10 @@ class Game(Mode):
     
     def beat(app, beat, subdivision):
         app.beatCount = beat
-        
+
         for cube in app.cubes:
             cube.updatePos(app.grid, beat)
+        '''
         if almostEquals(beat, int(beat)):
             if int(beat) %2 == 1:
                 for i in [1]:
@@ -243,6 +247,8 @@ class Game(Mode):
                 x,y = app.grid.getLaneCoords(-1, -1)
                 app.addBeatCube((x,y,app.grid.startZ),
                                 (0,0,-1*app.cubeSpeed),"right")
+        '''
+        app.addCubes(beat)
             
     def playSound(app, name): #Do i need a musicThread? or can I universalize a thread type
         thread = audioDriver.audioThread(1, "soundThread", name)
