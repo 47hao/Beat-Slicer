@@ -9,10 +9,11 @@ class BeatCube(cube.Cube):
         self.targetBeat = targetBeat
         self.prespawnBeats = preBeats
         self.direction = direction
+        self.beatDelay = .25
     
     def updatePos(self, grid, beat):
         (x,y,z) = self.pos
-        z = ((self.targetBeat-beat)/self.prespawnBeats)*self.grid.startZ
+        z = ((self.targetBeat-beat+self.beatDelay)/self.prespawnBeats)*self.grid.startZ
         self.pos = (x,y,z)
     
     def draw(self, grid, canvas, wireframe):
@@ -35,13 +36,13 @@ class BeatCube(cube.Cube):
         else:
             denom = x1-x0
         slope = (y1-y0)/denom
-        if self.direction == "down":
+        if self.direction == "u":
             return abs(slope) > 1 and y1>y0
-        elif self.direction == "up":
+        elif self.direction == "d":
             return abs(slope) > 1 and y1<y0
-        elif self.direction == "left":
+        elif self.direction == "l":
             return abs(slope) < 1 and x1>x0
-        elif self.direction == "right":
+        elif self.direction == "r":
             return abs(slope) < 1 and x1<x0
 
     def drawArrow(self, points, canvas):

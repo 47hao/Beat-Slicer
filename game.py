@@ -63,14 +63,14 @@ class Game(Mode):
         app.loadSong()
 
     def loadSong(app):
+        (bpm, delay, noteMap, fileName) = maps.getMap("VivaShort")
         app.notes = dict()
-        contents = readFile("maps/" + app.songName + ".py")
-        data = VivaLaVida.beatMap()
+        #contents = readFile("maps/" + app.songName + ".py")
+        data = noteMap
         for note in data:
             beat = note.beat
             app.notes[beat] = app.notes.get(beat,[]) + [note]
-        print(app.notes)
-        app.playMusic("VivaShort.wav")
+        app.playMusic(filename)
 
     def timerFired(app):
         app.ticks += 1
@@ -232,22 +232,10 @@ class Game(Mode):
     
     def beat(app, beat, subdivision):
         app.beatCount = beat
-
+        if almostEquals(beat, int(beat)):
+            print(beat)
         for cube in app.cubes:
             cube.updatePos(app.grid, beat)
-        '''
-        if almostEquals(beat, int(beat)):
-            if int(beat) %2 == 1:
-                for i in [1]:
-                    x,y = app.grid.getLaneCoords(i, 1)
-                    app.addBeatCube((x,y,app.grid.startZ),
-                                    (0,0,-1*app.cubeSpeed),"left")
-            
-            elif int(beat) %2 == 0:
-                x,y = app.grid.getLaneCoords(-1, -1)
-                app.addBeatCube((x,y,app.grid.startZ),
-                                (0,0,-1*app.cubeSpeed),"right")
-        '''
         app.addCubes(beat)
             
     def playSound(app, name): #Do i need a musicThread? or can I universalize a thread type
