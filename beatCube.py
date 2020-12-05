@@ -16,8 +16,8 @@ class BeatCube(cube.Cube):
         z = ((self.targetBeat-beat+self.beatDelay)/self.prespawnBeats)*self.grid.startZ
         self.pos = (x,y,z)
     
-    def draw(self, grid, canvas, wireframe):
-        super().draw(grid, canvas, wireframe)
+    def draw(self, grid, canvas, color):
+        super().draw(grid, canvas, color)
 
         (x,y,z) = self.pos
 
@@ -53,11 +53,11 @@ class BeatCube(cube.Cube):
         #p3---p2
         #calculate reusable corners
         width = p1[0] - p0[0]
-        m = width/8 #margin
+        m = width/6 #margin
         c0, c1 = (p0[0]+m,p0[1]+m),(p1[0]-m,p1[1]+m)
         c2, c3 = (p2[0]-m,p2[1]-m),(p3[0]+m,p3[1]-m)
-        b = m/2 #arrow body height
-        p = m*2 #arrow tip size
+        b = m/3 #arrow body height
+        p = m #arrow tip size
         if self.direction == "d":
             midX = (c0[0]+c1[0])//2
             arrowPoints = [ c0,c1,(c1[0],c1[1]+b),
@@ -74,7 +74,7 @@ class BeatCube(cube.Cube):
             midY = (c1[1]+c2[1])//2
             arrowPoints = [c0,c3,(c3[0]+b,c3[1]),
                 (c0[0]+b+p, midY),(c0[0]+b,c0[1])]
-        canvas.create_polygon(arrowPoints,fill="black")
+        canvas.create_polygon(arrowPoints,fill="white")
 
 
 

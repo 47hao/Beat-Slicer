@@ -16,7 +16,7 @@ def mirrored(beats):
     return result
 
 def getData():
-    return bpm, offset, beatMap(), fileName, 20
+    return bpm, offset, beatMap(), fileName, 0
 #=============================================================================
 
 bpm = 136
@@ -84,7 +84,6 @@ def beatMap():
         #Beat(c2,(2,1),'u'),
         #constant beats now
     
-
 def downUps(beat, pos, num):
     result = []
     for i in range(num):

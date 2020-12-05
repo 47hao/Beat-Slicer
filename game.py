@@ -40,7 +40,7 @@ class Game(Mode):
 
         app.beatCount = 0
         #number of beats a block spawns beforehand
-        app.preSpawnBeats = 24#app.grid.startZ/app.cubeSpeed
+        app.preSpawnBeats = 8#app.grid.startZ/app.cubeSpeed
 
         app.camThreshold = .9
         app.cam = camTracker.camTracker()
@@ -63,6 +63,8 @@ class Game(Mode):
         app.songName = app.app.song
         app.loadSong()
 
+        app.bgColor = (0,0,0)
+
     def loadSong(app):
         songInfo = songMaps.getMap("Radioactive")
         (bpm, delay, noteMap, fileName, startTime) = songInfo
@@ -79,11 +81,12 @@ class Game(Mode):
         if app.ticks % 100 == 0:
             app.cleanCubes()
 
+        app.backgroundTick()
         app.blade.bladeStep()
         #app.makeSampleCubePattern()
         app.moveCubes()
         app.bladeSlice()
-
+        
         if(app.debugMode):
             app.cam.showFrame()
             print("DEBUG INFO ======")
@@ -264,8 +267,9 @@ class Game(Mode):
                             fill = "red", outline = "")
 
     def drawCubes(app, canvas): #draw them in the right order
+        color = rgbString(app.bgColor)
         for i in range(len(app.cubes)-1, -1, -1):
-            app.cubes[i].draw(app.grid, canvas, False)
+            app.cubes[i].draw(app.grid, canvas, color)
     
     def drawPolys(app, canvas): #draw them in the right order
         for i in range(len(app.polys)-1, -1, -1):
@@ -279,8 +283,17 @@ class Game(Mode):
         canvas.create_text(margin, margin, text=t, font=f, anchor="nw",fill="white")
 
     def drawBackground(app, canvas):
-        canvas.create_rectangle(0,0,app.width,app.height,fill="black")
-
+        canvas.create_rectangle(0,0,app.width,app.height,fill=rgbString(app.bgColor))
+    
+    def backgroundTick(app):
+        ratio = .93
+        if app.bgColor == (0,0,0):
+            return
+        (r,g,b) = app.bgColor
+        if r+g+b > 0:
+            r,g,b = int(r*ratio),int(g*ratio),int(b*ratio)
+        app.bgColor = (r,g,b)
+        
     def endSong(app):
         #reset songover screen
         app.app.scoreData = (app.totalScore,app.totalCubes,app.goodSlices,
@@ -296,6 +309,9 @@ class Game(Mode):
             y = app.height*yScale
             #add point to blade
             app.blade.insertPoint((x,y))
+
+    def keyPressed(app, event):
+        app.bgColor = (100,100,100)
 
     def closeApp(app):
         print("GAME SHUTDOWN")
@@ -362,6 +378,12 @@ def almostEquals(a,b):
     if abs(a-b) <= epsilon:
         return True
     return False
+#cmu-112-graphics notes
+def rgbString(color):
+    (r,g,b) = color
+    # Don't worry about the :02x part, but for the curious,
+    # it says to use hex (base 16) with two digits.
+    return f'#{r:02x}{g:02x}{b:02x}'
 
 #cmu 112 notes: string functions
 def readFile(path):

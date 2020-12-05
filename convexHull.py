@@ -3,6 +3,41 @@ from scipy.spatial import ConvexHull
 import slice3d
 import copy
 
+def get2dHull(points):
+    pts = np.array(points)
+    hull = ConvexHull(pts)
+    return order2dFaces(np.ndarray.tolist(hull.simplices))
+
+#self designed algorithm
+def order2dFaces(sides):
+    result = []
+    i = 0
+    prevSide = sides[0]
+    prevPoint = prevSide[0]
+    while i < len(sides):
+        #add a point with each iteration of the while loop
+
+        #find the matching index
+        for j in range(len(sides)):
+        #look for teh next matching index
+            if prevPoint in sides[j] and sides[j] != prevSide:
+                matchingSide = sides[j]
+                break
+        #prevPoint = 5
+        #pick the point index that's not the one in common
+        if matchingSide[0] == prevPoint:
+            newPoint = matchingSide[1]
+        else:
+            newPoint = matchingSide[0]
+        #newPoint = 6
+        result.append(prevPoint)
+        prevSide = matchingSide
+        prevPoint = newPoint
+
+        i += 1
+    
+    return result
+        
 def getHull(points):
     pts = np.array(points)
 
@@ -154,3 +189,8 @@ def testHelpers():
     assert(oddNumOut(A,B) == 5)
     print("passed!")
 #testHelpers()
+def test2d():
+    shape = [(0,0),(2,1),(1,2),(-1,2),(3,-1),(2,5),(5,2)]
+    print(get2dHull(shape))
+
+#test2d()

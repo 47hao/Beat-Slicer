@@ -3,6 +3,7 @@ from cmu_112_graphics import *
 import slice3d
 import grid3d
 import poly3d
+import convexHull
 
 class Cube(poly3d.Poly3d):
     #front, top, left, right, bottom, back
@@ -16,7 +17,7 @@ class Cube(poly3d.Poly3d):
         self.sideLength = sideLength
         self.points = getCubePoints(sideLength)
         super().__init__(pos, vel, self.points)
-        self.outlineWidth = 2
+        self.outlineWidth = 8
 
         self.faces = dict()
         self.setFaces()
@@ -77,36 +78,34 @@ class Cube(poly3d.Poly3d):
             result.append(nextSideFace)
         result.append("front")
         self.faceOrder = result
-
-    def draw(self, grid, canvas, wireframe):
+        
+    def draw(self, grid, canvas, color):
         (x,y,z) = self.pos
         #fill, outline, width
-        f,o,w = "", "black", 1 #for wireframe
-        if(not(wireframe)):
-            f,o = "white", "black"
-            w = roundHalfUp(0.995**z*self.outlineWidth)
-
-        if self.inSliceZone(): #indicate cube is in slice zone
-            pass
-            #f = "green"
-
-        #reassemble/reorder faceList?
-        c = self.pos #centroid
+        w = roundHalfUp(abs((grid.startZ-z)/grid.startZ)*self.outlineWidth)
+        #get 2D points from 3D
+        c = self.pos
+        polyPoints = []
+        frontPoints = []
         for faceName in self.faceOrder:
             globPoints = grid3d.localToGlobal(c,self.faces[faceName])
-            #if wireframe or face in self.visibleFaces:
-                #localToGlobal these
-            converted = []
             for p in globPoints:
-                converted.append(grid.to2d(p))
-            if(faceName == "front"):
-                w *= 2
-                f,o,w = "black","white",w
-                ((x0,y0),(x1,y1),(x2,y2),(x3,y3)) = converted
-                converted = ((x0+w,y0+w),(x1-w,y1+w),(x2-w,y2-w),(x3+w,y3-w))
-                w *= 1.2
-            canvas.create_polygon(converted,fill=f,outline=o, width = w)
-    
+                polyPoints.append(grid.to2d(p))
+            if faceName == "front":
+                for p in globPoints:
+                    frontPoints.append(grid.to2d(p))
+        #get polygon from 2D shapes
+        pointIndices = convexHull.get2dHull(polyPoints)
+        drawPoly = []
+        for i in pointIndices:
+            drawPoly.append(polyPoints[i])
+        #get front face points
+        ((x0,y0),(x1,y1),(x2,y2),(x3,y3)) = frontPoints
+        frontPoints = ((x0+w,y0+w),(x1-w,y1+w),(x2-w,y2-w),(x3+w,y3-w))
+        #draw polygon
+        canvas.create_polygon(drawPoly,fill="white",outline=color, width = w)
+        canvas.create_polygon(frontPoints,fill=color,outline="")
+
     def sliceCube(self, plane):
         glob = grid3d.localToGlobal(self.pos, self.points)
         #print("global points:",glob)
