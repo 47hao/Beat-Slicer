@@ -317,18 +317,44 @@ class Game(Mode):
         print("GAME SHUTDOWN")
         app.running = False
 
-
+#Learned from:
+#cs.cmu.edu/~112/notes/notes-animations-part3.html
 class SplashScreen(Mode):
-    #Copypasted https://www.cs.cmu.edu/~112/notes/notes-animations-part3.html#subclassingModalApp
-    def redrawAll(mode, canvas):
-        font = 'Arial 26 bold'
-        canvas.create_text(mode.width/2, 150, text='Beat Slicer', font=font)
-        canvas.create_text(mode.width/2, 200, text='hehe', font=font)
-        canvas.create_text(mode.width/2, 250, text='Press any key for the game!', font=font)
+    def appStarted(mode):
+        mode.titleText = mode.loadImage("images/titleText.png")
+        mode.playButton = mode.loadImage("images/playButton.png")
+        mode.playButtonHighlighted = mode.scaleImage(mode.playButton,1.02)
+        mode.buttonHighlighted = False
+        mode.buttonPos = (mode.width/2, mode.height*.7)
 
+    def redrawAll(mode, canvas):
+        #font = 'Arial 26 bold'
+        cx, cy = mode.width/2,mode.height/2
+        canvas.create_rectangle(0,0,mode.width,mode.height,fill="black")
+        canvas.create_image(cx, mode.height*.4, 
+                            image=ImageTk.PhotoImage(mode.titleText))
+        if mode.buttonHighlighted:
+            img = mode.playButtonHighlighted
+        else:
+            img = mode.playButton
+        canvas.create_image(mode.buttonPos, 
+                            image=ImageTk.PhotoImage(img))
+
+    def mousePressed(mode, event):
+        if mode.buttonHighlighted:
+            mode.app.setActiveMode(mode.app.gameMode)
     def keyPressed(mode, event):
         mode.app.setActiveMode(mode.app.gameMode)
-
+    
+    def mouseMoved(mode, event):
+        width, height = mode.playButton.size
+        x,y = mode.buttonPos
+        x0, y0 = x-width/2, y-height/2
+        x1, y1 = x+width/2, y+height/2
+        if event.x > x0 and event.x < x1 and event.y > y0 and event.y < y1:
+            mode.buttonHighlighted = True
+        else:
+            mode.buttonHighlighted = False
 class SongOver(Mode):
     def appStarted(mode):
         #shut down the game

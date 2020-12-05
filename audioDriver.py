@@ -21,7 +21,7 @@ musics = os.listdir("sounds/music")
 #(bpm, offset(ms))
 #bpm = {"VivaLaVida.wav":(138,1.7),"VivaShort.wav":(138,1.7)}
 
-subDivision = 16
+subDivision = 32
 #MOVING ALL AUDIO FILE STRUCTURE
 class audioDriver(object):
     def __init__(self, soundDir):
