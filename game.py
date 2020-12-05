@@ -49,7 +49,7 @@ class Game(Mode):
 
         app.beatCount = 0
         #number of beats a block spawns beforehand
-        app.preSpawnBeats = 8#app.grid.startZ/app.cubeSpeed
+        app.preSpawnBeats = 6 #app.grid.startZ/app.cubeSpeed
 
         app.camThreshold = .9
         app.cam = camTracker.camTracker()
@@ -367,10 +367,10 @@ class SplashScreen(Mode):
             mode.fadeIndex += 1
             if mode.fadeIndex == mode.fadeFrames:
                 mode.app.setActiveMode(mode.app.gameMode)
-
+    '''
     def keyPressed(mode, event):
         mode.app.setActiveMode(mode.app.gameMode)
-
+    '''
     def mousePressed(mode, event):
         if mode.buttonHighlighted:
             mode.fadeOut()
@@ -479,7 +479,7 @@ class ModalApp(ModalApp):
     def appStarted(app):
         app.splashScreenMode = SplashScreen()
         app.calibrationMode = Calibration()
-        app.song = "VivaShort"
+        app.song = "Radioactive"
         app.gameMode = Game()
         app.setActiveMode(app.splashScreenMode)
         app.timerDelay = 2
