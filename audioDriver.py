@@ -42,7 +42,7 @@ class audioDriver(object):
             self.sounds[name[len(name)-1]] = wave.open("sounds/" + soundDir, 'rb')
     
     def playTrack(self, app, info):
-        (bpm, offset, noteMap, fileName, startBeat) = info
+        (bpm, offset, noteMap, fileName, _,_, startBeat) = info
         print("LOADING:", fileName)
         self.wf = self.sounds[fileName]
         frameRate = self.wf.getframerate()

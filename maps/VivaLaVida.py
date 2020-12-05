@@ -16,12 +16,14 @@ def mirrored(beats):
     return result
 
 def getData():
-    return bpm, offset, beatMap(), fileName, 0
+    return bpm, offset, beatMap(), fileName, songName, artist, 0
 #=============================================================================
 
 bpm = 138
 offset = 1.7
 fileName = "VivaShort.wav"
+songName = "Viva La Vida"
+artist = "Coldplay"
 
 def beatLine(startBeat):
     locs = (1,-1)

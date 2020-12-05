@@ -40,7 +40,7 @@ class Poly3d(object):
                 canvas.create_oval(x-r,y-r,x+r,y+r,fill=color)
         
         
-        f,o,w = "", "white", 1 #for wireframe
+        f,o,w = "", "white", 2 #for wireframe
         c = self.pos
         for face in self.faces:
             facePoints = [self.points[i] for i in face]

@@ -66,8 +66,12 @@ class Game(Mode):
         app.bgColor = (0,0,0)
 
     def loadSong(app):
-        songInfo = songMaps.getMap("Radioactive")
-        (bpm, delay, noteMap, fileName, startTime) = songInfo
+        songInfo = songMaps.getMap(app.app.song)
+        (bpm, delay, noteMap, fileName, songTitle, artist, startTime) = songInfo
+        #pass info back to the game
+        app.app.songTitle = songTitle
+        app.app.artist = artist
+
         app.notes = dict()
         #contents = readFile("maps/" + app.songName + ".py")
         data = noteMap
@@ -83,7 +87,6 @@ class Game(Mode):
 
         app.backgroundTick()
         app.blade.bladeStep()
-        #app.makeSampleCubePattern()
         app.moveCubes()
         app.bladeSlice()
         
@@ -178,10 +181,7 @@ class Game(Mode):
         totalScore = baseScore + sliceScore + timeScore
         return totalScore
         #give full score up to 1:2 ratio
-
-    def makeTestCubes(app):
-        app.addCube((0,0,-10),(0,0,-1*app.cubeVel))
-
+   
     def addCubes(app, beat): #att beat 20, queue beat 24's cubes
         queueBeat = beat+app.preSpawnBeats
         if queueBeat in app.notes:
@@ -194,16 +194,8 @@ class Game(Mode):
                 cube = beatCube.BeatCube(app.grid,cubeParams,direc,
                         queueBeat, app.preSpawnBeats)
                 app.cubes.append(cube)
+                app.totalCubes += 1
             
-    def addCube(app, pos, vel):
-        app.cubes.append(cube.Cube(pos, vel, app.grid.cubeSize))
-
-    def addBeatCube(app, pos, vel, direc):
-        cubeParams = (pos, vel, app.grid.cubeSize)
-        app.cubes.append(beatCube.BeatCube(app.grid,cubeParams,direc,
-                        app.beatCount+app.preSpawnBeats, app.preSpawnBeats))
-        app.totalCubes += 1
-
     def moveCubes(app):
         beat = app.beatCount
         for cube in app.cubes:
@@ -298,6 +290,7 @@ class Game(Mode):
         #reset songover screen
         app.app.scoreData = (app.totalScore,app.totalCubes,app.goodSlices,
                             app.badSlices)
+        print(app.app.scoreData)
         app.app.songOverMode = SongOver()
         app.app.setActiveMode(app.app.songOverMode)
 
@@ -327,10 +320,14 @@ class SplashScreen(Mode):
         mode.buttonHighlighted = False
         mode.buttonPos = (mode.width/2, mode.height*.7)
 
+        mode.fading = False
+        mode.fadeImg = Image.new('RGB', (mode.width, mode.height), color = 'black')
+        mode.fadeIndex = 0
+
     def redrawAll(mode, canvas):
-        #font = 'Arial 26 bold'
         cx, cy = mode.width/2,mode.height/2
         canvas.create_rectangle(0,0,mode.width,mode.height,fill="black")
+        
         canvas.create_image(cx, mode.height*.4, 
                             image=ImageTk.PhotoImage(mode.titleText))
         if mode.buttonHighlighted:
@@ -339,37 +336,132 @@ class SplashScreen(Mode):
             img = mode.playButton
         canvas.create_image(mode.buttonPos, 
                             image=ImageTk.PhotoImage(img))
+        
+        if mode.fading:
+            canvas.create_image(0,0,image=ImageTk.PhotoImage(mode.fadeImgs[mode.fadeIndex]),
+                                anchor="nw")
+
+    def fadeOut(mode):
+        #load faded images
+        mode.fadeImgs = []
+        mode.fadeFrames = 10
+        for i in range(mode.fadeFrames):
+            newIm = mode.fadeImg.copy()
+            newIm.putalpha(int((i+1)*255/(mode.fadeFrames)))
+            mode.fadeImgs.append(newIm)
+        mode.fadeConstant = 0
+        mode.fading = True
+
+    def timerFired(mode):
+        mode.timerDelay = 1
+        if mode.fading and mode.fadeIndex < mode.fadeFrames:
+            mode.fadeIndex += 1
+            if mode.fadeIndex == mode.fadeFrames:
+                mode.app.setActiveMode(mode.app.gameMode)
+
+    def keyPressed(mode, event):
+        mode.app.setActiveMode(mode.app.gameMode)
 
     def mousePressed(mode, event):
         if mode.buttonHighlighted:
-            mode.app.setActiveMode(mode.app.gameMode)
-    def keyPressed(mode, event):
-        mode.app.setActiveMode(mode.app.gameMode)
-    
+            mode.fadeOut()
+
     def mouseMoved(mode, event):
+        if mode.fading:
+            return
         width, height = mode.playButton.size
         x,y = mode.buttonPos
         x0, y0 = x-width/2, y-height/2
         x1, y1 = x+width/2, y+height/2
-        if event.x > x0 and event.x < x1 and event.y > y0 and event.y < y1:
-            mode.buttonHighlighted = True
-        else:
-            mode.buttonHighlighted = False
+        try:
+            if event.x > x0 and event.x < x1 and event.y > y0 and event.y < y1:
+                mode.buttonHighlighted = True
+            else:
+                mode.buttonHighlighted = False
+        except:
+            pass
+
+#CALL RESET METHOD IN SONGOVER INSTEAD OF REINITALIZING IT
 class SongOver(Mode):
     def appStarted(mode):
         #shut down the game
-        mode.app.gameMode.closeApp()
+        mode.buttonHighlighted = False
         (mode.score, mode.cubes, mode.good, mode.bad) = mode.app.scoreData
+        mode.restartButton = mode.loadImage("images/restartButton.png")
+        mode.restartButtonHighlighted = mode.scaleImage(mode.restartButton,1.02)
+        mode.buttonPos = (mode.width/2, mode.height*.75)
+        mode.app.gameMode.closeApp()
         
     def redrawAll(mode, canvas):
-        font = 'Arial 26 bold'
-        canvas.create_text(mode.width/2, 150, text='Song Over!', font=font)
-        canvas.create_text(mode.width/2, 200, text=f'Score:{mode.score}', font=font)
-        canvas.create_text(mode.width/2, 250, text=f'Cubes Sliced:{mode.good+mode.bad}/{mode.cubes}', font=font)
-        canvas.create_text(mode.width/2, 300, text=f'Good Slices:{mode.good}/{mode.good+mode.bad}', font=font)
+        canvas.create_rectangle(0,0,mode.width,mode.height,fill="black")
+        try:
+            mode.drawScoreScreen(canvas)
+            if mode.buttonHighlighted:
+                img = mode.restartButtonHighlighted
+            else:
+                img = mode.restartButton
+            canvas.create_image(mode.buttonPos, 
+                                image=ImageTk.PhotoImage(img))
+        except:pass
+
+    def drawScoreScreen(mode, canvas):
+        titleFont = "Teko 48 bold"
+        songFont = "Teko 36 bold"
+        artistFont = "Teko 22 bold"
+        t='LEVEL FINISHED'
+        canvas.create_text(mode.width/2, mode.height*.3, text=t, 
+                            font=titleFont,fill="white")
+        t=mode.app.songTitle.upper()
+        canvas.create_text(mode.width/2, mode.height*.4, text=t, 
+                            font=songFont,fill="white")
+        t=mode.app.artist.upper()
+        canvas.create_text(mode.width/2, mode.height*.45, text=t, 
+                            font=artistFont,fill="gray")
+        
+        labelF =  "Teko 22 bold"
+        c = "gray"
+        t="CUBES SLICED"
+        canvas.create_text(mode.width*.25, mode.height*.55, text=t,font=labelF,fill=c)
+        t="SCORE"
+        canvas.create_text(mode.width/2, mode.height*.55, text=t,font=labelF,fill=c)
+        t="GOOD CUTS"
+        canvas.create_text(mode.width*.75, mode.height*.55, text=t,font=labelF,fill=c)
+
+        numberF1 = "Teko 52 bold"
+        numberF2 = "Teko 36 bold"
+        c = "white"
+        t = f"{mode.good+mode.bad}/{mode.cubes}"
+        canvas.create_text(mode.width*.25, mode.height*.56, text=t,font=numberF2,fill=c,anchor="n")
+        t = str(mode.score)
+        canvas.create_text(mode.width*.5, mode.height*.55, text=t,font=numberF1,fill=c,anchor="n")
+        t = f"{mode.good}/{mode.good+mode.bad}"
+        canvas.create_text(mode.width*.75, mode.height*.56, text=t,font=numberF2,fill=c,anchor="n")
+
     def keyPressed(mode, event):
-        mode.app.gameMode = Game()
-        mode.app.setActiveMode(mode.app.gameMode)
+        try:
+            mode.app.gameMode = Game()
+            mode.app.setActiveMode(mode.app.gameMode)
+        except: pass
+    
+    def mousePressed(mode, event):
+        try:
+            if mode.buttonHighlighted:
+                mode.app.gameMode = Game()
+                mode.app.setActiveMode(mode.app.gameMode)
+        except: pass
+
+    def mouseMoved(mode, event):
+        try:
+            width, height = mode.restartButton.size
+            x,y = mode.buttonPos
+            x0, y0 = x-width/2, y-height/2
+            x1, y1 = x+width/2, y+height/2
+            if event.x > x0 and event.x < x1 and event.y > y0 and event.y < y1:
+                mode.buttonHighlighted = True
+            else:
+                mode.buttonHighlighted = False
+        except:
+            pass
 
 class Calibration(Mode):
     pass
@@ -378,9 +470,8 @@ class ModalApp(ModalApp):
     def appStarted(app):
         app.splashScreenMode = SplashScreen()
         app.calibrationMode = Calibration()
-        app.song = "VivaLaVida"
+        app.song = "VivaShort"
         app.gameMode = Game()
-        #app.songOverMode = SongOver() initialization needs game over
         app.setActiveMode(app.splashScreenMode)
         app.timerDelay = 2
 
