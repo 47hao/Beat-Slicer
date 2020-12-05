@@ -16,7 +16,7 @@ def mirrored(beats):
     return result
 
 def getData():
-    return bpm, offset, beatMap(), fileName
+    return bpm, offset, beatMap(), fileName, 0
 #=============================================================================
 
 bpm = 169

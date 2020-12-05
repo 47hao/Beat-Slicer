@@ -8,9 +8,9 @@ class Grid3d(object):
         self.game = game
 
         self.startZ = 3000
-        self.gridWidth = min(game.width,game.height)*0.4
+        self.gridWidth = min(game.width,game.height)*0.6
         self.gridSize = self.gridWidth/3
-        self.cubeSize = self.gridSize*0.7
+        self.cubeSize = self.gridSize*0.8
         #app.makeTestCubes()
 
     def getLaneCoords(self, x, y):

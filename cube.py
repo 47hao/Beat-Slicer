@@ -99,7 +99,12 @@ class Cube(poly3d.Poly3d):
             converted = []
             for p in globPoints:
                 converted.append(grid.to2d(p))
-            #print("drawn")
+            if(faceName == "front"):
+                w *= 2
+                f,o,w = "black","white",w
+                ((x0,y0),(x1,y1),(x2,y2),(x3,y3)) = converted
+                converted = ((x0+w,y0+w),(x1-w,y1+w),(x2-w,y2-w),(x3+w,y3-w))
+                w *= 1.2
             canvas.create_polygon(converted,fill=f,outline=o, width = w)
     
     def sliceCube(self, plane):

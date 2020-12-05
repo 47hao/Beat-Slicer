@@ -16,7 +16,7 @@ def mirrored(beats):
     return result
 
 def getData():
-    return bpm, offset, beatMap(), fileName
+    return bpm, offset, beatMap(), fileName, 20
 #=============================================================================
 
 bpm = 136
@@ -25,6 +25,7 @@ fileName = "Radioactive.wav"
 
 def beatMap():
     c1 = 68
+    c2 = 100
     return [
         #intro section
         Beat(12,(1,1),'d'),
@@ -43,16 +44,53 @@ def beatMap():
         Beat(45,(1,0),'d'),
         Beat(48,(-1,1),'u'),
         Beat(49,(-1,0),'d'),
-        #first chorus c1
+
+        #first chorus c1=======================================
         Beat(c1,(2,0),'d'),
-        Beat(c1,(2,1),'d'),
-        
+        #Beat(c1,(2,1),'d'),
         Beat(c1+3,(-1,-1),'l'),
         Beat(c1+4,(-2,0),'d'),
-        Beat(c1+4,(-2,1),'d'),
+        #Beat(c1+4,(-2,1),'d'),
         
         Beat(c1+6,(1,1),'u'),
 
         Beat(c1+8,(-1,0),'l'),
-        Beat(c1+8,(-2,0),'l'),
+        #Beat(c1+8,(-2,0),'l'),
+        
+        Beat(c1+15,(1,-1),'r'),
+        Beat(c1+16,(1,-1),'l'),
+
+        Beat(c1+18,(-1,0),'d'),
+        Beat(c1+19,(1,1),'r'),
+        Beat(c1+20,(1,1),'l'),
+
+        Beat(c1+22,(-1,0),'u'),
+        Beat(c1+23,(1,-1),'r'),
+        Beat(c1+24,(1,-1),'l'),
+        #long breath
+        Beat(98,(1,0),'l'),
+        Beat(98,(2,0),'l'),
+
+        #chorus 2===================================================
+    ] + ( downUps(c2, (2,1),4) + downUps(c2+4, (1,1),4) 
+        + downUps(c2+8, (-1,1),4) + downUps(c2+12, (-2,1),4)
+        + downUps(c2+16, (1,1),4) + downUps(c2+20, (-1,1),4)
+        ) + [
+        #dotted quarter section
+        
     ]
+
+        #Beat(c2,(2,1),'d'),
+        #Beat(c2,(2,1),'u'),
+        #constant beats now
+    
+
+def downUps(beat, pos, num):
+    result = []
+    for i in range(num):
+        result.append(Beat(beat+i,pos,['d','u'][i%2]))
+    return result
+
+#syncopated rhythmic part
+def syncopate(beat):
+    pass

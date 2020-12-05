@@ -21,7 +21,7 @@ musics = os.listdir("sounds/music")
 #(bpm, offset(ms))
 #bpm = {"VivaLaVida.wav":(138,1.7),"VivaShort.wav":(138,1.7)}
 
-subDivision = 1
+subDivision = 16
 #MOVING ALL AUDIO FILE STRUCTURE
 class audioDriver(object):
     def __init__(self, soundDir):
@@ -42,7 +42,7 @@ class audioDriver(object):
             self.sounds[name[len(name)-1]] = wave.open("sounds/" + soundDir, 'rb')
     
     def playTrack(self, app, info):
-        (bpm, offset, noteMap, fileName) = info
+        (bpm, offset, noteMap, fileName, startBeat) = info
         print("LOADING:", fileName)
         self.wf = self.sounds[fileName]
         frameRate = self.wf.getframerate()
@@ -58,9 +58,15 @@ class audioDriver(object):
 
         #duration of a quarter/sixteenth/whatever note
         secondsPerCount = secondsPerBeat/subDivision
-        self.currentBeat = 0
+        #convert beats to number of samples
 
-        frameIndex = 0
+        self.currentBeat = startBeat
+        startTime = secondsPerBeat * startBeat
+        startFrame = int(startTime * frameRate)
+        print("startFrame:",startFrame)
+        self.wf.readframes(startFrame)
+        frameIndex = startFrame
+
         data = self.wf.readframes(1)
         print("running:", app._running)
         while len(data) > 0 and app._running:
@@ -70,9 +76,9 @@ class audioDriver(object):
             seconds = frameIndex/frameRate #how many seconds in the song is
             if seconds/secondsPerBeat > self.currentBeat+offset:
                 self.currentBeat += 1/subDivision
-                self.playTick()
-                print(self.currentBeat)
-                #app.gameMode.beat(self.currentBeat, subDivision)
+                #self.playTick()
+                #print(self.currentBeat)
+                app.gameMode.beat(self.currentBeat, subDivision)
         
         app.gameMode.endSong()
         #stop when done

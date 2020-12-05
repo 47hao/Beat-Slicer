@@ -40,7 +40,7 @@ class Game(Mode):
 
         app.beatCount = 0
         #number of beats a block spawns beforehand
-        app.preSpawnBeats = 8#app.grid.startZ/app.cubeSpeed
+        app.preSpawnBeats = 24#app.grid.startZ/app.cubeSpeed
 
         app.camThreshold = .9
         app.cam = camTracker.camTracker()
@@ -65,7 +65,7 @@ class Game(Mode):
 
     def loadSong(app):
         songInfo = songMaps.getMap("Radioactive")
-        (bpm, delay, noteMap, fileName) = songInfo
+        (bpm, delay, noteMap, fileName, startTime) = songInfo
         app.notes = dict()
         #contents = readFile("maps/" + app.songName + ".py")
         data = noteMap
