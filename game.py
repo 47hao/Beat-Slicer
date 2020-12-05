@@ -18,8 +18,17 @@ import threading
 #This project uses cmu_112_graphics, based on tkinter:
 #https://www.cs.cmu.edu/~112/
 #ModalApp from 112 animations part 3 notes
-    
-#app = mode, didn't want to change it all
+
+#Assets used in this project
+#Music:
+#Radioactive - Imagine Dragons (2012)
+#Viva La Vida - Coldplay (2008)
+#Seven Nation Army - The White Stripes(2003)
+#Take on Me - Aha (1985)
+#Sounds:
+#Beat Saber (2018) Official sound effects
+#Fonts: Orkney (Hanken Design Co.), Teko (Indian Type Foundry)
+
 class Game(Mode):
     def appStarted(app):
         app.running = True
