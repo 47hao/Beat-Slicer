@@ -13,8 +13,16 @@ class Grid3d(object):
         self.cubeSize = self.gridSize*0.7
         #app.makeTestCubes()
 
-    def getLaneCoords(self, row, col):
-        return row*self.gridSize, col*self.gridSize
+    def getLaneCoords(self, x, y):
+
+        if x > 0:
+            x -= 0.5
+        elif x < 0:
+            x += 0.5
+        else:
+            raise Exception("x coordinate of cubes cannot be zero")
+
+        return x*self.gridSize, y*self.gridSize
 
     #Hand calculated method
     def to2d(self, coords):

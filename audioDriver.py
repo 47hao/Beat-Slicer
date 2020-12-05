@@ -19,9 +19,9 @@ hitSounds = os.listdir("sounds/hitSounds")
 hitSoundsBad = os.listdir("sounds/hitSoundsBad")
 musics = os.listdir("sounds/music")
 #(bpm, offset(ms))
-bpm = {"VivaLaVida.wav":(138,1.7),"VivaShort.wav":(138,1.7)}
+#bpm = {"VivaLaVida.wav":(138,1.7),"VivaShort.wav":(138,1.7)}
 
-subDivision = 32
+subDivision = 1
 #MOVING ALL AUDIO FILE STRUCTURE
 class audioDriver(object):
     def __init__(self, soundDir):
@@ -41,9 +41,10 @@ class audioDriver(object):
             name = soundDir.split("/")
             self.sounds[name[len(name)-1]] = wave.open("sounds/" + soundDir, 'rb')
     
-    def playTrack(self, app, name):
-        print("LOADING:", name)
-        self.wf = self.sounds[name]
+    def playTrack(self, app, info):
+        (bpm, offset, noteMap, fileName) = info
+        print("LOADING:", fileName)
+        self.wf = self.sounds[fileName]
         frameRate = self.wf.getframerate()
         print("framerate:", frameRate)
         stream = self.p.open(format=self.p.get_format_from_width(
@@ -53,8 +54,7 @@ class audioDriver(object):
                 output=True)
         
         #how many seconds long each beat is
-        secondsPerBeat = 1/(bpm[name][0]/60)
-        offset = bpm[name][1] #what units tho??
+        secondsPerBeat = 1/(bpm/60) #what units tho??
 
         #duration of a quarter/sixteenth/whatever note
         secondsPerCount = secondsPerBeat/subDivision
@@ -70,7 +70,7 @@ class audioDriver(object):
             seconds = frameIndex/frameRate #how many seconds in the song is
             if seconds/secondsPerBeat > self.currentBeat+offset:
                 self.currentBeat += 1/subDivision
-                #self.playTick()
+                self.playTick()
                 app.gameMode.beat(self.currentBeat, subDivision)
         
         app.gameMode.endSong()
@@ -137,14 +137,15 @@ class audioThread(threading.Thread):
         self.driver.playSound(self.soundName)
 
 class musicThread(threading.Thread):
-    def __init__(self, app, threadID, name):
+    def __init__(self, app, threadID, info):
         threading.Thread.__init__(self)
         self.app = app
         self.threadID = threadID
-        self.name = name
-        self.driver = audioDriver("music/" + name)
+        #self.name = name
+        self.driver = audioDriver("all")
+        self.info = info
     def run(self):
-        self.driver.playTrack(self.app, self.name)
+        self.driver.playTrack(self.app, self.info)
 
 def testDriver():
     thread = audioThread(1, "soundThread", "hitSounds/HitShortLeft4.wav")

@@ -14,22 +14,26 @@ def mirrored(beats):
         beat, (x,y), direc = beat.beat, beat.pos, beat.direc
         result.append(Beat(b,(x*-1,y),direc))
     return result
+
+def getData():
+    return bpm, offset, beatMap(), fileName
 #=============================================================================
 
 bpm = 138
-delay = 1.7
+offset = 1.7
+fileName = "VivaLaVida.wav"
 
 def beatLine(startBeat):
     locs = (1,-1)
     dirs = ('r','l')
-    return [Beat(startBeat+s*2, (locs[s%2],1), dirs[s%2]) for s in range(0,4)]
+    return [Beat(startBeat+s*2, ((locs[s%2]-0.5)*2,1), dirs[s%2]) for s in range(0,4)]
 
 def tune(startBeat):
     s = startBeat
     return [Beat(s,(1,1),'r'),
-            Beat(s+1,(0,1),'l'),
+            Beat(s+1,(-1,1),'l'),
             Beat(s+2,(1,1),'r'),
-            Beat(s+3,(0,1),'l'),
+            Beat(s+3,(-1,1),'l'),
             Beat(s+4,(1,1),'r'),
             Beat(s+4.5,(1,0),'u'),
             Beat(s+5.5,(1,0),'d')]
@@ -44,7 +48,6 @@ def beatMap():
         #intro section
         Beat(s1,(1,0),'r'),
         Beat(s1+2,(-1,0),'l'),
-    ] + beatLine(16) + [
     ] + tune(24)
     return beatMap
 

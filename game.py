@@ -8,7 +8,8 @@ import beatCube
 import blade
 import math
 
-from maps import VivaLaVida
+#from maps import VivaLaVida
+import songMaps
 
 import audioDriver
 import camTracker
@@ -63,14 +64,15 @@ class Game(Mode):
         app.loadSong()
 
     def loadSong(app):
-        (bpm, delay, noteMap, fileName) = maps.getMap("VivaShort")
+        songInfo = songMaps.getMap("Radioactive")
+        (bpm, delay, noteMap, fileName) = songInfo
         app.notes = dict()
         #contents = readFile("maps/" + app.songName + ".py")
         data = noteMap
         for note in data:
             beat = note.beat
             app.notes[beat] = app.notes.get(beat,[]) + [note]
-        app.playMusic(filename)
+        app.playMusic(songInfo)
 
     def timerFired(app):
         app.ticks += 1
@@ -226,8 +228,8 @@ class Game(Mode):
             else: #frontmost cubes are lowest indices 
                 return
 
-    def playMusic(app, name):
-        thread = audioDriver.musicThread(app.app, "soundThread", name)
+    def playMusic(app, info):
+        thread = audioDriver.musicThread(app.app, "soundThread", info)
         thread.start()
     
     def beat(app, beat, subdivision):
