@@ -71,7 +71,8 @@ class audioDriver(object):
             if seconds/secondsPerBeat > self.currentBeat+offset:
                 self.currentBeat += 1/subDivision
                 self.playTick()
-                app.gameMode.beat(self.currentBeat, subDivision)
+                print(self.currentBeat)
+                #app.gameMode.beat(self.currentBeat, subDivision)
         
         app.gameMode.endSong()
         #stop when done
@@ -147,12 +148,15 @@ class musicThread(threading.Thread):
     def run(self):
         self.driver.playTrack(self.app, self.info)
 
+import songMaps
+''' NOT WORKING use audiotest
 def testDriver():
     thread = audioThread(1, "soundThread", "hitSounds/HitShortLeft4.wav")
     thread.start()
-    driver = audioDriver("all")
-    #driver.playTrack("VivaLaVida.wav")
+    songInfo = songMaps.getMap("Radioactive")
+    thread = musicThread(app.app, "soundThread", songInfo)
+    thread.start()
     #driver.playSound("HitLongLeft1.wav")
     #driver.playSound("HitLongLeft2.wav")
-
+'''
 #testDriver()

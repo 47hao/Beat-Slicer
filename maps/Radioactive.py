@@ -24,4 +24,35 @@ offset = 0
 fileName = "Radioactive.wav"
 
 def beatMap():
-    return []
+    c1 = 68
+    return [
+        #intro section
+        Beat(12,(1,1),'d'),
+        Beat(16,(-1,1),'u'),
+        Beat(20,(1,1),'d'),
+        Beat(24,(-1,1),'u'),
+        Beat(28,(1,0),'r'),
+        Beat(32,(-1,0),'l'),
+
+        Beat(36,(2,1),'u'),
+        Beat(37,(2,1),'d'),
+        Beat(40,(-2,1),'u'),
+        Beat(41,(-2,1),'d'),
+
+        Beat(44,(1,1),'u'),
+        Beat(45,(1,0),'d'),
+        Beat(48,(-1,1),'u'),
+        Beat(49,(-1,0),'d'),
+        #first chorus c1
+        Beat(c1,(2,0),'d'),
+        Beat(c1,(2,1),'d'),
+        
+        Beat(c1+3,(-1,-1),'l'),
+        Beat(c1+4,(-2,0),'d'),
+        Beat(c1+4,(-2,1),'d'),
+        
+        Beat(c1+6,(1,1),'u'),
+
+        Beat(c1+8,(-1,0),'l'),
+        Beat(c1+8,(-2,0),'l'),
+    ]

@@ -235,6 +235,7 @@ class Game(Mode):
     def beat(app, beat, subdivision):
         app.beatCount = beat
         if almostEquals(beat, int(beat)):
+            pass
             print(beat)
         for cube in app.cubes:
             cube.updatePos(app.grid, beat)

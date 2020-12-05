@@ -21,7 +21,7 @@ def getData():
 
 bpm = 138
 offset = 1.7
-fileName = "VivaLaVida.wav"
+fileName = "VivaShort.wav"
 
 def beatLine(startBeat):
     locs = (1,-1)

@@ -1,6 +1,7 @@
 from cmu_112_graphics import *
 import audioDriver
 import time
+import songMaps
 
 class audioTest(App):
     def appStarted(app):
@@ -8,9 +9,9 @@ class audioTest(App):
         #app.driver = audioDriver.audioDriver("all")
         app.beatCount = 0
         
-    
     def playMusic(app, name):
-        thread = audioDriver.musicThread(app, "soundThread", name)
+        songInfo = songMaps.getMap("Radioactive")
+        thread = audioDriver.musicThread(app, "soundThread", songInfo)
         thread.start()
 
     def beat(app, beat, subdivision):
@@ -22,7 +23,8 @@ class audioTest(App):
 
     def keyPressed(app, event):
         if event.key == "Space":
-            thread = audioDriver.musicThread(app, "soundThread", "VivaLaVida.wav")
+            songInfo = songMaps.getMap("Radioactive")
+            thread = audioDriver.musicThread(app, "soundThread", songInfo)
             thread.start()
             #app.driver.playTrack(app, "VivaLaVida.wav")
             #playSound(app, "HitLongLeft1.wav")
