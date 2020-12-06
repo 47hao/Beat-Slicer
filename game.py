@@ -72,6 +72,8 @@ class Game(Mode):
         app.songName = app.app.song
         app.loadSong()
 
+        app.sparks = []
+
         app.bgColor = (0,0,0)
 
     def loadSong(app):
@@ -98,7 +100,9 @@ class Game(Mode):
         app.blade.bladeStep()
         app.moveCubes()
         app.bladeSlice()
-        
+        if app.ticks%2 == 0:
+            app.sparkTick()
+
         if(app.debugMode):
             app.cam.showFrame()
             print("DEBUG INFO ======")
@@ -141,6 +145,8 @@ class Game(Mode):
                 success = result[0]
                 #success = 
                 if success and type(cube) == beatCube.BeatCube:
+                    sX, sY = x0+app.width/2,y0+app.height/2
+                    app.sparks.extend(blade.Spark.makeSparks((sX,sY)))
                     if cube.checkDir(p0, p1):
                         app.driver.playHitSound()
                         score = int(result[1])
@@ -253,6 +259,7 @@ class Game(Mode):
         app.drawCubes(canvas)
         app.drawPolys(canvas)
         #app.drawSlice(canvas)
+        app.drawSparks(canvas)
         app.blade.draw(canvas)
         #heck
         if(app.debugMode):
@@ -280,6 +287,10 @@ class Game(Mode):
         f = f"Montserrat {textSize} bold"
         canvas.create_text(margin, margin, text=t, font=f, anchor="nw",fill="white")
 
+    def drawSparks(app, canvas):
+        for spark in app.sparks:
+            spark.draw(canvas)
+
     def drawBackground(app, canvas):
         canvas.create_rectangle(0,0,app.width,app.height,fill=rgbString(app.bgColor))
     
@@ -291,7 +302,16 @@ class Game(Mode):
         if r+g+b > 0:
             r,g,b = int(r*ratio),int(g*ratio),int(b*ratio)
         app.bgColor = (r,g,b)
-        
+    
+    def sparkTick(app):
+        i = 0
+        while i < len(app.sparks):
+            if app.sparks[i].dead:
+                app.sparks.pop(i)
+            else:
+                app.sparks[i].tick()
+                i += 1
+
     def endSong(app):
         #reset songover screen
         app.app.scoreData = (app.totalScore,app.totalCubes,app.goodSlices,
@@ -515,7 +535,7 @@ class ModalApp(ModalApp):
     def appStarted(app):
         app.splashScreenMode = SplashScreen()
         app.calibrationMode = Calibration()
-        app.song = "VivaShort"
+        app.song = "Radioactive"
         app.songOverMode = SongOver()
         app.gameMode = Game()
         app.setActiveMode(app.splashScreenMode)

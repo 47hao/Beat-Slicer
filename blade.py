@@ -1,5 +1,7 @@
 import time
 from cmu_112_graphics import *
+import random
+import math
 #similar to my own code in Fruit Ninja Hack112; rewritten by me, with OOP
 #FN Hack112 code overhauled from Ricky Huang's prototype
 class Blade(object):
@@ -33,8 +35,8 @@ class Blade(object):
             canvas.create_line(x0,y0,x1,y1, width=8, fill="white")
 
 class Spark(object):
-    critPoint = 8
-    lifeSpan = 12
+    critPoint = 3
+    lifeSpan = 6
 
     def __init__(self, pos, vel):
         (x,y),(dx,dy) = pos,vel
@@ -43,31 +45,45 @@ class Spark(object):
         self.vel = vel
         self.time = 0
         self.dead = False
+        self.maxWidth = 8
+        self.stroke = 1
 
     def tick(self):
+        self.time += 1
         if self.time > Spark.lifeSpan:
             self.dead = True
-        elif self.time > Spark.critPoint:
+            return
+        self.stroke = int(max(((self.lifeSpan-self.time)/self.lifeSpan),0)*self.maxWidth)
+        if self.time > Spark.critPoint:
+            (dx,dy) = self.vel
             (x,y) = self.pos1
-            self.pos1 = (x+dx/4,y+dy/4) #1 goes out 12 total
+            self.pos1 = (x+dx/2,y+dy/2) #1 goes out 5 total
             (x,y) = self.pos2
-            self.pos2 = (x+dx*2,y+dy*2) #2 goes out 8
+            self.pos2 = (x+dx,y+dy) #2 goes out 4
             #decreasing in size
         else:
+            (dx,dy) = self.vel
             (x,y) = self.pos1
-            self.pos1 = (x+dx,y+dy) #1 goes out 8
+            self.pos1 = (x+dx,y+dy) #1 goes out 3
             (x,y) = self.pos2
-            self.pos2 = (x+dx/2,y+dy/2) #2 goes out 4
+            self.pos2 = (x+dx/2,y+dy/2) #2 goes out 2
             #increasing in size
-        self.time += 1
+        
 
     def draw(self, canvas):
-        canvas.create_line(self.pos1, self.pos2,width=4,fill="white")
+        canvas.create_line(self.pos1, self.pos2,width=self.stroke,fill="white")
 
     @staticmethod
     def makeSparks(pos):
+        sparkMagnitude = 50
         (x,y) = pos
-        return Spark(pos,(0,1)) 
+        sparks = []
+        for i in range(12):
+            m = random.randint(sparkMagnitude//2, sparkMagnitude)
+            angle = random.random()*2*math.pi
+            dx,dy = math.cos(angle)*m,math.sin(angle)*m
+            sparks.append(Spark(pos,(dx,dy)))
+        return sparks
 
 def dist(x0,y0,x1,y1):
     dx = (x0-x1)**2
