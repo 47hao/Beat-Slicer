@@ -254,6 +254,7 @@ class Game(Mode):
         app.drawPolys(canvas)
         #app.drawSlice(canvas)
         app.blade.draw(canvas)
+        #heck
         if(app.debugMode):
             app.drawReferenceMarker(canvas)
 
