@@ -1,5 +1,6 @@
 
 from cmu_112_graphics import *
+from PIL import ImageOps
 import grid3d
 import slice3d
 import poly3d
@@ -8,7 +9,6 @@ import beatCube
 import blade
 import math
 import time
-#from maps import VivaLaVida
 import songMaps
 
 import audioDriver
@@ -73,11 +73,11 @@ class Game(Mode):
         app.loadSong()
 
         app.sparks = []
+        app.animationPulse = 0
+        app.bgColor = (0,0,0)
         aThread = animationThread("aThread", app)
         aThread.start()
 
-        app.animationPulse = 0
-        app.bgColor = (0,0,0)
 
     def loadSong(app):
         songInfo = songMaps.getMap(app.app.song)
@@ -98,8 +98,6 @@ class Game(Mode):
         app.ticks += 1
         if app.ticks % 100 == 0:
             app.cleanCubes()
-
-        app.pulse()
         app.blade.bladeStep()
         app.bladeSlice()
         #if app.ticks%2 == 0:
@@ -274,7 +272,7 @@ class Game(Mode):
     def drawCubes(app, canvas): #draw them in the right order
         color = rgbString(app.bgColor)
         for i in range(len(app.cubes)-1, -1, -1):
-            app.cubes[i].draw(app.grid, canvas, color)
+            app.cubes[i].draw(app.grid, canvas, color, app.animationPulse)
     
     def drawPolys(app, canvas): #draw them in the right order
         for i in range(len(app.polys)-1, -1, -1):
@@ -424,7 +422,6 @@ class SplashScreen(Mode):
 
 #CALL RESET METHOD IN SONGOVER INSTEAD OF REINITALIZING IT
 class SongOver(Mode):
-
     def appStarted(mode):
         mode.fading = False
 
@@ -541,7 +538,67 @@ class SongOver(Mode):
         thread.start() 
 
 class Calibration(Mode):
-    pass
+    def appStarted(mode):
+        mode.resetBounds()
+
+        mode.timerDelay = 5
+        mode.camThreshold = .9
+        mode.cam = camTracker.camTracker()
+        mode.cameraImage = None
+        mode.lightSeen = False
+
+    
+    def resetBounds(mode):
+        mode.minX = -1
+        mode.maxX = -1
+        mode.minY = -1
+        mode.maxY = -1
+
+    def timerFired(mode):
+        mode.lightPos = mode.cam.getCoords(mode.camThreshold,False)
+        mode.cameraImage = ImageOps.grayscale(mode.cam.getFrame())
+        if mode.lightSeen and mode.lightPos != None:
+            #adjust boundaries
+            (x,y) = mode.lightPos
+            if x<mode.minX or mode.minX == -1:
+               mode.minX = x 
+            if x>mode.maxX or mode.maxX == -1:
+               mode.maxX = x 
+            if y<mode.minY or mode.minY == -1:
+               mode.minY = y
+            if y>mode.maxY or mode.maxY == -1:
+               mode.maxY = y 
+            print(f"{mode.minX},{mode.maxX},{mode.minY},{mode.maxY}")
+    
+    def redrawAll(mode, canvas):
+        canvas.create_rectangle(0,0,mode.width,mode.height,fill="black")
+        if mode.cameraImage != None:
+            canvas.create_image(mode.width/2, mode.height/2, 
+                                image=ImageTk.PhotoImage(mode.cameraImage))
+            mode.roundCorners(canvas)
+            if mode.lightPos != None:
+                mode.lightSeen = True
+                mode.drawLightMarker(canvas)
+            else:
+                mode.lightSeen = False
+                
+    def drawLightMarker(mode, canvas):
+        (camWidth,camHeight) = mode.cameraImage.size
+        leftBorder = mode.width/2-camWidth/2
+        topBorder = mode.height/2-camHeight/2
+        (xProp,yProp) = mode.lightPos
+        lightX, lightY = leftBorder+camWidth*xProp,topBorder+camHeight*yProp
+        r=6
+        canvas.create_oval(lightX-r,lightY-r,lightX+r,lightY+r,outline="",fill="red")
+
+    def camToScreenSpace(mode, pX,pY):
+        (camWidth,camHeight) = mode.cameraImage.size
+        leftBorder = mode.width/2-camWidth/2
+        topBorder = mode.height/2-camHeight/2
+        return leftBorder+camWidth*pX,topBorder+camHeight*pY
+
+    def roundCorners(mode, canvas):
+        pass
 
 class ModalApp(ModalApp):
     def appStarted(app):
@@ -550,7 +607,7 @@ class ModalApp(ModalApp):
         app.song = "Radioactive"
         app.songOverMode = SongOver()
         app.gameMode = Game()
-        app.setActiveMode(app.splashScreenMode)
+        app.setActiveMode(app.calibrationMode)
         app.timerDelay = 2
 
     def closeApp(app):
@@ -576,6 +633,7 @@ class animationThread(threading.Thread):
     
     def run(self):
         while self.game.running:#app._running:
+            self.game.pulseTick()
             self.game.sparkTick()
             self.game.movePolys()
             self.game.cleanPolys()

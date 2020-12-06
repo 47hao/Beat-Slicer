@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 import os
 import time
+from cmu_112_graphics import *
 
 from PIL import ImageFilter
 
@@ -75,16 +76,22 @@ class camTracker(object):
             ret, frame = self.cap.read()
         except:
             return None
+        self.frame = frame
         #frame = cropImage(frame, 0, 0)
         filtered = filterLight(frame, threshold)#process data
-
         #add images to be displayed when show is called
         if showDebug and self.counter%5 == 0:
-            self.frame = frame
             self.filtered = filtered
 
         return findLargestLight(filtered)
     
+    def getFrame(self):
+        try:
+            im = Image.fromarray(self.frame)
+            return im
+        except:
+            return None
+
     def showFrame(self):
         try: #sometimes frame is none, suppress such errors
             #frame150 = rescale_frame(frame, percent=150)

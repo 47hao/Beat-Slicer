@@ -16,7 +16,7 @@ class BeatCube(cube.Cube):
         z = ((self.targetBeat-beat+self.beatDelay)/self.prespawnBeats)*self.grid.startZ
         self.pos = (x,y,z)
     
-    def draw(self, grid, canvas, color):
+    def draw(self, grid, canvas, color, pulse):
         super().draw(grid, canvas, color)
 
         (x,y,z) = self.pos
