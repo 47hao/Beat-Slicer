@@ -443,7 +443,9 @@ class SongOver(Mode):
             mode.fadeIndex += 1
             if mode.fadeIndex >= mode.fadeFrames:
                 #SLIGHT PROBLEMS HERE
-                #mode.fadeIndex = 0
+                #
+                mode.fading = False
+                mode.fadeIndex = 0
                 mode.app.gameMode = Game()
                 mode.app.setActiveMode(mode.app.gameMode)
 
