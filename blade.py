@@ -78,7 +78,7 @@ class Spark(object):
         sparkMagnitude = 50
         (x,y) = pos
         sparks = []
-        for i in range(12):
+        for i in range(random.randint(12,18)):
             m = random.randint(sparkMagnitude//2, sparkMagnitude)
             angle = random.random()*2*math.pi
             dx,dy = math.cos(angle)*m,math.sin(angle)*m

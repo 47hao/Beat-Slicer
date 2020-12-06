@@ -11,7 +11,7 @@ class Poly3d(object):
         self.vel = vel
         self.points = points
         self.faces = self.getFaces()
-        self.grav = 0.5
+        self.grav = 0.8
 
         self.drawPoints = False
     
@@ -24,7 +24,7 @@ class Poly3d(object):
     def getPoints(self):
         return self.points
     
-    def move(self, timerDelay):
+    def move(self):
         (x,y,z) = self.pos
         (dx,dy,dz) = self.vel
         self.vel = (dx,dy+self.grav,dz)

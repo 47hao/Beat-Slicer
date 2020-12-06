@@ -7,7 +7,7 @@ import cube
 import beatCube
 import blade
 import math
-
+import time
 #from maps import VivaLaVida
 import songMaps
 
@@ -73,7 +73,10 @@ class Game(Mode):
         app.loadSong()
 
         app.sparks = []
+        aThread = animationThread("aThread", app)
+        aThread.start()
 
+        app.animationPulse = 0
         app.bgColor = (0,0,0)
 
     def loadSong(app):
@@ -96,12 +99,11 @@ class Game(Mode):
         if app.ticks % 100 == 0:
             app.cleanCubes()
 
-        app.backgroundTick()
+        app.pulse()
         app.blade.bladeStep()
-        app.moveCubes()
         app.bladeSlice()
-        if app.ticks%2 == 0:
-            app.sparkTick()
+        #if app.ticks%2 == 0:
+        #    app.sparkTick()
 
         if(app.debugMode):
             app.cam.showFrame()
@@ -210,15 +212,10 @@ class Game(Mode):
                         queueBeat, app.preSpawnBeats)
                 app.cubes.append(cube)
                 app.totalCubes += 1
-            
-    def moveCubes(app):
-        beat = app.beatCount
-        for cube in app.cubes:
-            pass
-            #cube.updatePos(app.grid, beat)
-            #cube.move(app.timerDelay)
+        
+    def movePolys(app):
         for poly in app.polys:
-            poly.move(app.timerDelay)
+            poly.move()
 
     def cleanCubes(app):
         i = 0
@@ -229,10 +226,13 @@ class Game(Mode):
                 #print(len(app.cubes))
             else: #frontmost cubes are lowest indices 
                 break
+    
+    def cleanPolys(app):
+        i = 0
         while i < len(app.polys):
             poly = app.polys[i]
-            if (poly.pos[2] < -1*app.focalLength or abs(poly.pos[1]) > app.height or
-                abs(poly.pos[0]) > app.width):
+            if (poly.pos[2] < -1*app.focalLength or abs(poly.pos[1]) > app.height*.7 or
+                abs(poly.pos[0]) > app.width*.7):
                 app.polys.pop(i)
                 #print(len(app.cubes))
             else: #frontmost cubes are lowest indices 
@@ -278,7 +278,9 @@ class Game(Mode):
     
     def drawPolys(app, canvas): #draw them in the right order
         for i in range(len(app.polys)-1, -1, -1):
-            app.polys[i].draw(app.grid, canvas)
+            try: #poly removal is on a separate thread
+                app.polys[i].draw(app.grid, canvas)
+            except: pass
 
     def drawScore(app, canvas):
         margin = 20
@@ -294,6 +296,16 @@ class Game(Mode):
     def drawBackground(app, canvas):
         canvas.create_rectangle(0,0,app.width,app.height,fill=rgbString(app.bgColor))
     
+    def pulse(app):
+        app.animationPulse = 1
+        app.bgColor = (100,100,100)
+
+    def pulseTick(app):
+        app.backgroundTick()
+        ratio = .93
+        if app.animationPulse > 0:
+            app.animationPulse *= ratio
+
     def backgroundTick(app):
         ratio = .93
         if app.bgColor == (0,0,0):
@@ -329,7 +341,7 @@ class Game(Mode):
             app.blade.insertPoint((x,y))
 
     def keyPressed(app, event):
-        app.bgColor = (100,100,100)
+        app.pulse()
 
     def closeApp(app):
         print("GAME SHUTDOWN")
@@ -555,6 +567,20 @@ class camThread(threading.Thread):
         while self.game.running:#app._running:
             self.game.camTick()
         print("CAMERA THREAD STOPPED")
+
+class animationThread(threading.Thread):
+    def __init__(self, name, game):
+        threading.Thread.__init__(self)
+        self.name = name
+        self.game = game
+    
+    def run(self):
+        while self.game.running:#app._running:
+            self.game.sparkTick()
+            self.game.movePolys()
+            self.game.cleanPolys()
+            time.sleep(0.02)
+            
 
 def almostEquals(a,b):
     epsilon = 10**-5
