@@ -2,6 +2,7 @@
 # version 0.8.6
 # MODIFICATIONS: ADDED closeApp() on line ~614
 # removed MVC violation detection on line ~377
+# Commented line 284
 # Pre-release for CMU 15-112-f20
 
 # Require Python 3.6 or later
@@ -280,7 +281,8 @@ class App(object):
 
     def loadImage(app, path=None):
         if (app._canvas.inRedrawAll):
-            raise Exception('Cannot call loadImage in redrawAll')
+            pass
+            #raise Exception('Cannot call loadImage in redrawAll')
         if (path is None):
             path = filedialog.askopenfilename(initialdir=os.getcwd(), title='Select file: ',filetypes = (('Image files','*.png *.gif *.jpg'),('all files','*.*')))
             if (not path): return None

@@ -244,18 +244,14 @@ class Game(Mode):
         for cube in app.cubes:
             cube.updatePos(app.grid, beat)
         app.addCubes(beat)
-            
-    def playSound(app, name): #Do i need a musicThread? or can I universalize a thread type
-        thread = audioDriver.audioThread(1, "soundThread", name)
-        thread.start() 
 
     def redrawAll(app, canvas):
         app.drawBackground(canvas)
         app.drawScore(canvas)
         #app.drawGrid(canvas)
         #canvas.create_rectangle(10,10,10+app.grid.cubeSize,10+app.grid.cubeSize)
-        app.drawPolys(canvas)
         app.drawCubes(canvas)
+        app.drawPolys(canvas)
         #app.drawSlice(canvas)
         app.blade.draw(canvas)
         if(app.debugMode):
@@ -299,9 +295,8 @@ class Game(Mode):
         #reset songover screen
         app.app.scoreData = (app.totalScore,app.totalCubes,app.goodSlices,
                             app.badSlices)
-        print(app.app.scoreData)
-        app.app.songOverMode = SongOver()
         app.app.setActiveMode(app.app.songOverMode)
+        app.closeApp()
 
     def camTick(app):
         output = app.cam.getCoords(app.camThreshold, app.debugMode)
@@ -367,15 +362,15 @@ class SplashScreen(Mode):
             mode.fadeIndex += 1
             if mode.fadeIndex == mode.fadeFrames:
                 mode.app.setActiveMode(mode.app.gameMode)
-    '''
-    def keyPressed(mode, event):
-        mode.app.setActiveMode(mode.app.gameMode)
-    '''
+    
     def mousePressed(mode, event):
         if mode.buttonHighlighted:
+            mode.playClickSound()
+            mode.buttonHighlighted = False
             mode.fadeOut()
 
     def mouseMoved(mode, event):
+        mode.mouseMovedDelay = 1
         if mode.fading:
             return
         width, height = mode.playButton.size
@@ -390,28 +385,67 @@ class SplashScreen(Mode):
         except:
             pass
 
+    def playClickSound(mode):
+        thread = audioDriver.audioThread(1, "soundThread", "other/menuClick.wav")
+        thread.start() 
+
 #CALL RESET METHOD IN SONGOVER INSTEAD OF REINITALIZING IT
 class SongOver(Mode):
+
     def appStarted(mode):
-        #shut down the game
-        mode.buttonHighlighted = False
-        (mode.score, mode.cubes, mode.good, mode.bad) = mode.app.scoreData
+        mode.fading = False
+
+        mode.loading = True
         mode.restartButton = mode.loadImage("images/restartButton.png")
         mode.restartButtonHighlighted = mode.scaleImage(mode.restartButton,1.02)
         mode.buttonPos = (mode.width/2, mode.height*.75)
-        mode.app.gameMode.closeApp()
-        
+        mode.buttonHighlighted = False
+
+        mode.fadeImg = Image.new('RGB', (mode.width, mode.height), color = 'black')
+        mode.fadeIndex = 0
+        mode.loading = False
+
     def redrawAll(mode, canvas):
         canvas.create_rectangle(0,0,mode.width,mode.height,fill="black")
-        try:
-            mode.drawScoreScreen(canvas)
-            if mode.buttonHighlighted:
-                img = mode.restartButtonHighlighted
-            else:
-                img = mode.restartButton
-            canvas.create_image(mode.buttonPos, 
-                                image=ImageTk.PhotoImage(img))
-        except:pass
+        if mode.loading:
+            return
+        (mode.score, mode.cubes, mode.good, mode.bad) = mode.app.scoreData
+        
+        mode.drawScoreScreen(canvas)
+        if mode.buttonHighlighted:
+            img = mode.restartButtonHighlighted
+        else:
+            img = mode.restartButton
+        canvas.create_image(mode.buttonPos, 
+                            image=ImageTk.PhotoImage(img))
+        if mode.fading:
+            canvas.create_image(0,0,image=ImageTk.PhotoImage(mode.fadeImgs[mode.fadeIndex]),
+                                anchor="nw")
+
+    def fadeOut(mode):
+        if mode.loading:
+            return
+        #load faded images
+        mode.fadeImgs = []
+        mode.fadeFrames = 10
+        for i in range(mode.fadeFrames):
+            newIm = mode.fadeImg.copy()
+            newIm.putalpha(int((i+1)*255/(mode.fadeFrames)))
+            mode.fadeImgs.append(newIm)
+        mode.fadeConstant = 0
+        mode.fading = True
+        
+    def timerFired(mode):
+        if mode.loading:
+            return
+        mode.timerDelay = 1
+        if mode.fading and mode.fadeIndex < mode.fadeFrames:
+            mode.fadeIndex += 1
+            if mode.fadeIndex >= mode.fadeFrames:
+                #SLIGHT PROBLEMS HERE
+                #mode.fadeIndex = 0
+                mode.app.gameMode = Game()
+                mode.app.setActiveMode(mode.app.gameMode)
 
     def drawScoreScreen(mode, canvas):
         titleFont = "Teko 48 bold"
@@ -445,32 +479,31 @@ class SongOver(Mode):
         canvas.create_text(mode.width*.5, mode.height*.55, text=t,font=numberF1,fill=c,anchor="n")
         t = f"{mode.good}/{mode.good+mode.bad}"
         canvas.create_text(mode.width*.75, mode.height*.56, text=t,font=numberF2,fill=c,anchor="n")
-
-    def keyPressed(mode, event):
-        try:
-            mode.app.gameMode = Game()
-            mode.app.setActiveMode(mode.app.gameMode)
-        except: pass
     
     def mousePressed(mode, event):
-        try:
-            if mode.buttonHighlighted:
-                mode.app.gameMode = Game()
-                mode.app.setActiveMode(mode.app.gameMode)
-        except: pass
+        if mode.loading:
+            return
+        if mode.buttonHighlighted:
+            mode.playClickSound()
+            mode.buttonHighlighted = False
+            mode.fadeOut()
 
     def mouseMoved(mode, event):
-        try:
-            width, height = mode.restartButton.size
-            x,y = mode.buttonPos
-            x0, y0 = x-width/2, y-height/2
-            x1, y1 = x+width/2, y+height/2
-            if event.x > x0 and event.x < x1 and event.y > y0 and event.y < y1:
-                mode.buttonHighlighted = True
-            else:
-                mode.buttonHighlighted = False
-        except:
-            pass
+        if mode.loading or mode.fading:
+            return
+        mode.mouseMovedDelay = 1
+        width, height = mode.restartButton.size
+        x,y = mode.buttonPos
+        x0, y0 = x-width/2, y-height/2
+        x1, y1 = x+width/2, y+height/2
+        if event.x > x0 and event.x < x1 and event.y > y0 and event.y < y1:
+            mode.buttonHighlighted = True
+        else:
+            mode.buttonHighlighted = False
+
+    def playClickSound(mode):
+        thread = audioDriver.audioThread(1, "soundThread", "other/menuClick.wav")
+        thread.start() 
 
 class Calibration(Mode):
     pass
@@ -479,7 +512,8 @@ class ModalApp(ModalApp):
     def appStarted(app):
         app.splashScreenMode = SplashScreen()
         app.calibrationMode = Calibration()
-        app.song = "Radioactive"
+        app.song = "VivaShort"
+        app.songOverMode = SongOver()
         app.gameMode = Game()
         app.setActiveMode(app.splashScreenMode)
         app.timerDelay = 2
@@ -516,5 +550,5 @@ def readFile(path):
     with open(path, "rt") as f:
         return f.read()
 
-ModalApp(width=1200,height=800)
+ModalApp(width=1400,height=1000)
 #Game(width=1200,height=800)

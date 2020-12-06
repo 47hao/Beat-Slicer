@@ -29,7 +29,7 @@ class audioDriver(object):
         self.sounds = dict()
         self.currentBeat = None
         if soundDir == "all":
-            print("LOADING ALL SOUND FILES...")
+            #print("LOADING ALL SOUND FILES...")
             for fileName in hitSounds:
                 self.sounds[fileName] = wave.open("sounds/hitSounds/" + fileName, 'rb') 
             for fileName in hitSoundsBad:
@@ -43,10 +43,10 @@ class audioDriver(object):
     
     def playTrack(self, app, info):
         (bpm, offset, noteMap, fileName, _,_, startBeat) = info
-        print("LOADING:", fileName)
+        #print("LOADING:", fileName)
         self.wf = self.sounds[fileName]
         frameRate = self.wf.getframerate()
-        print("framerate:", frameRate)
+        #print("framerate:", frameRate)
         stream = self.p.open(format=self.p.get_format_from_width(
                 self.wf.getsampwidth()),
                 channels=self.wf.getnchannels(),
@@ -63,12 +63,12 @@ class audioDriver(object):
         self.currentBeat = startBeat
         startTime = secondsPerBeat * startBeat
         startFrame = int(startTime * frameRate)
-        print("startFrame:",startFrame)
+        #print("startFrame:",startFrame)
         self.wf.readframes(startFrame)
         frameIndex = startFrame
 
         data = self.wf.readframes(1)
-        print("running:", app._running)
+        #print("running:", app._running)
         while len(data) > 0 and app._running:
             stream.write(data)
             data = self.wf.readframes(1)
