@@ -333,6 +333,11 @@ class Game(Mode):
         output = app.cam.getCoords(app.camThreshold, app.debugMode)
         if(output != None):
             (xScale, yScale) = output
+            if app.app.cameraBounds != None:
+                (xmin, xmax, ymin, ymax) = app.app.cameraBounds
+                xScale = (xScale-xmin)/(xmax-xmin)
+                yScale = (yScale-ymin)/(ymax-ymin)
+
             x = app.width*(1-xScale) #camera's flipped
             y = app.height*yScale
             #add point to blade
@@ -392,7 +397,10 @@ class SplashScreen(Mode):
         if mode.fading and mode.fadeIndex < mode.fadeFrames:
             mode.fadeIndex += 1
             if mode.fadeIndex == mode.fadeFrames:
-                mode.app.setActiveMode(mode.app.gameMode)
+                if(mode.app.calibrate):
+                    mode.app.setActiveMode(mode.app.calibrationMode)
+                else:   
+                    mode.app.setActiveMode(mode.app.gameMode)
     
     def mousePressed(mode, event):
         if mode.buttonHighlighted:
@@ -539,14 +547,22 @@ class SongOver(Mode):
 
 class Calibration(Mode):
     def appStarted(mode):
-        mode.resetBounds()
+        mode.reButton = mode.loadImage("images/resetButton.png")
+        mode.reButtonHighlighted = mode.scaleImage(mode.reButton,1.02)
+        mode.rButtonHighlighted = False
+        mode.reButtonPos = (mode.width*.4, mode.height*.8)
 
+        mode.contButton = mode.loadImage("images/continueButton.png")
+        mode.contButtonHighlighted = mode.scaleImage(mode.contButton,1.02)
+        mode.cButtonHighlighted = False
+        mode.contButtonPos = (mode.width*.6, mode.height*.8)
+
+        mode.resetBounds()
         mode.timerDelay = 5
         mode.camThreshold = .9
         mode.cam = camTracker.camTracker()
         mode.cameraImage = None
         mode.lightSeen = False
-
     
     def resetBounds(mode):
         mode.minX = -1
@@ -568,26 +584,77 @@ class Calibration(Mode):
                mode.minY = y
             if y>mode.maxY or mode.maxY == -1:
                mode.maxY = y 
-            print(f"{mode.minX},{mode.maxX},{mode.minY},{mode.maxY}")
+            #print(f"{mode.minX},{mode.maxX},{mode.minY},{mode.maxY}")
     
     def redrawAll(mode, canvas):
         canvas.create_rectangle(0,0,mode.width,mode.height,fill="black")
+        mode.drawUI(canvas)
         if mode.cameraImage != None:
             canvas.create_image(mode.width/2, mode.height/2, 
                                 image=ImageTk.PhotoImage(mode.cameraImage))
-            mode.roundCorners(canvas)
+            #mode.roundCorners(canvas)
             if mode.lightPos != None:
                 mode.lightSeen = True
+                mode.drawBounds(canvas)
                 mode.drawLightMarker(canvas)
             else:
                 mode.lightSeen = False
-                
+    
+    def drawUI(mode, canvas):
+        f = "Teko 48 bold"
+        canvas.create_text(mode.width/2,mode.height*.2,text="CALIBRATION",font=f,fill="white")
+        f = "Teko 24 bold"
+        t = "MOVE COMFORTABLY TO SET YOUR RANGE OF MOTION"
+        canvas.create_text(mode.width/2,mode.height*.25,text=t,font=f,fill="gray")
+        if mode.rButtonHighlighted:
+            img = mode.reButtonHighlighted
+        else:
+            img = mode.reButton
+        canvas.create_image(mode.reButtonPos, 
+                            image=ImageTk.PhotoImage(img))
+        if mode.cButtonHighlighted:
+            img = mode.contButtonHighlighted
+        else:
+            img = mode.contButton
+        canvas.create_image(mode.contButtonPos, 
+                            image=ImageTk.PhotoImage(img))
+        
+    def confirm(mode):
+        mode.app.cameraBounds = (mode.minX,mode.maxX,mode.minY,mode.maxY)
+        mode.app.setActiveMode(mode.app.gameMode)
+
+    def keyPressed(mode, event):
+        if event.key == "Space":
+            mode.confirm()
+        else:
+            mode.resetBounds()
+
+    def mousePressed(mode, event):
+        if mode.rButtonHighlighted:
+            mode.playClickSound()
+            mode.rButtonHighlighted = False
+            mode.resetBounds()
+        elif mode.cButtonHighlighted:
+            mode.playClickSound()
+            mode.cButtonHighlighted = False
+            mode.confirm()
+    
+    def drawBounds(mode, canvas):
+        lines = [None]*4
+        lines[0] = (mode.camToScreenSpace(mode.minX,0),
+                    mode.camToScreenSpace(mode.minX,1))
+        lines[1] = (mode.camToScreenSpace(mode.maxX,0),
+                    mode.camToScreenSpace(mode.maxX,1))
+        lines[2] = (mode.camToScreenSpace(0,mode.minY),
+                    mode.camToScreenSpace(1,mode.minY))
+        lines[3] = (mode.camToScreenSpace(0,mode.maxY),
+                    mode.camToScreenSpace(1,mode.maxY))
+        for line in lines:
+            canvas.create_line(line, fill="white",width=2,dash=(30,30))
+
     def drawLightMarker(mode, canvas):
-        (camWidth,camHeight) = mode.cameraImage.size
-        leftBorder = mode.width/2-camWidth/2
-        topBorder = mode.height/2-camHeight/2
-        (xProp,yProp) = mode.lightPos
-        lightX, lightY = leftBorder+camWidth*xProp,topBorder+camHeight*yProp
+        xProp, yProp = mode.lightPos
+        lightX, lightY = mode.camToScreenSpace(xProp,yProp)
         r=6
         canvas.create_oval(lightX-r,lightY-r,lightX+r,lightY+r,outline="",fill="red")
 
@@ -597,17 +664,46 @@ class Calibration(Mode):
         topBorder = mode.height/2-camHeight/2
         return leftBorder+camWidth*pX,topBorder+camHeight*pY
 
-    def roundCorners(mode, canvas):
-        pass
+    def playClickSound(mode):
+        thread = audioDriver.audioThread(1, "soundThread", "other/menuClick.wav")
+        thread.start() 
+
+    def mouseMoved(mode, event):
+        mode.mouseMovedDelay = 1
+        width, height = mode.reButton.size
+        x,y = mode.reButtonPos
+        x0, y0 = x-width/2, y-height/2
+        x1, y1 = x+width/2, y+height/2
+        try:
+            if event.x > x0 and event.x < x1 and event.y > y0 and event.y < y1:
+                mode.rButtonHighlighted = True
+            else:
+                mode.rButtonHighlighted = False
+        except:
+            pass
+
+        width, height = mode.contButton.size
+        x,y = mode.contButtonPos
+        x0, y0 = x-width/2, y-height/2
+        x1, y1 = x+width/2, y+height/2
+        try:
+            if event.x > x0 and event.x < x1 and event.y > y0 and event.y < y1:
+                mode.cButtonHighlighted = True
+            else:
+                mode.cButtonHighlighted = False
+        except:
+            pass
 
 class ModalApp(ModalApp):
     def appStarted(app):
         app.splashScreenMode = SplashScreen()
         app.calibrationMode = Calibration()
+        app.calibrate = True
+        app.cameraBounds = None
         app.song = "Radioactive"
         app.songOverMode = SongOver()
         app.gameMode = Game()
-        app.setActiveMode(app.calibrationMode)
+        app.setActiveMode(app.splashScreenMode)
         app.timerDelay = 2
 
     def closeApp(app):
@@ -621,9 +717,9 @@ class camThread(threading.Thread):
         self.game = game
 
     def run(self):
-        while self.game.running:#app._running:
+        while self.game.running:
             self.game.camTick()
-        print("CAMERA THREAD STOPPED")
+        #print("CAMERA THREAD STOPPED")
 
 class animationThread(threading.Thread):
     def __init__(self, name, game):

@@ -47,7 +47,10 @@ def getHull(points):
     faces = np.ndarray.tolist(hull.simplices)
     #merge a couple times for 5 and 6-sided shapes
     for i in range(2):
-        faces = mergeFaces(faces,points)
+        try:
+            faces = mergeFaces(faces,points)
+        except:
+            pass
     return faces, volume
 
 
