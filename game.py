@@ -283,8 +283,8 @@ class Game(Mode):
     def drawScore(app, canvas):
         margin = 20
         t = f"{app.totalScore}"
-        textSize = int(app.width/30)
-        f = f"Montserrat {textSize} bold"
+        textSize = int(app.width/28)
+        f = f"Teko {textSize} bold"
         canvas.create_text(margin, margin, text=t, font=f, anchor="nw",fill="white")
 
     def drawSparks(app, canvas):
@@ -394,6 +394,7 @@ class SplashScreen(Mode):
 
     def timerFired(mode):
         mode.timerDelay = 1
+        mode.buttonPos = (mode.width/2, mode.height*.7)
         if mode.fading and mode.fadeIndex < mode.fadeFrames:
             mode.fadeIndex += 1
             if mode.fadeIndex == mode.fadeFrames:
@@ -563,6 +564,10 @@ class Calibration(Mode):
         mode.cam = camTracker.camTracker()
         mode.cameraImage = None
         mode.lightSeen = False
+
+        mode.fading = False
+        mode.fadeImg = Image.new('RGB', (mode.width, mode.height), color = 'black')
+        mode.fadeIndex = 0
     
     def resetBounds(mode):
         mode.minX = -1
@@ -571,20 +576,29 @@ class Calibration(Mode):
         mode.maxY = -1
 
     def timerFired(mode):
-        mode.lightPos = mode.cam.getCoords(mode.camThreshold,False)
-        mode.cameraImage = ImageOps.grayscale(mode.cam.getFrame())
-        if mode.lightSeen and mode.lightPos != None:
-            #adjust boundaries
-            (x,y) = mode.lightPos
-            if x<mode.minX or mode.minX == -1:
-               mode.minX = x 
-            if x>mode.maxX or mode.maxX == -1:
-               mode.maxX = x 
-            if y<mode.minY or mode.minY == -1:
-               mode.minY = y
-            if y>mode.maxY or mode.maxY == -1:
-               mode.maxY = y 
-            #print(f"{mode.minX},{mode.maxX},{mode.minY},{mode.maxY}")
+        mode.timerDelay = 1
+        mode.reButtonPos = (mode.width*.4, mode.height*.8)
+        mode.contButtonPos = (mode.width*.6, mode.height*.8)
+        if mode.fading and mode.fadeIndex < mode.fadeFrames:
+            mode.fadeIndex += 1
+            if mode.fadeIndex == mode.fadeFrames:
+                mode.confirm()
+        else:
+
+            mode.lightPos = mode.cam.getCoords(mode.camThreshold,False)
+            mode.cameraImage = ImageOps.grayscale(mode.cam.getFrame())
+            if mode.lightSeen and mode.lightPos != None:
+                #adjust boundaries
+                (x,y) = mode.lightPos
+                if x<mode.minX or mode.minX == -1:
+                    mode.minX = x 
+                if x>mode.maxX or mode.maxX == -1:
+                    mode.maxX = x 
+                if y<mode.minY or mode.minY == -1:
+                    mode.minY = y
+                if y>mode.maxY or mode.maxY == -1:
+                    mode.maxY = y 
+                #print(f"{mode.minX},{mode.maxX},{mode.minY},{mode.maxY}")
     
     def redrawAll(mode, canvas):
         canvas.create_rectangle(0,0,mode.width,mode.height,fill="black")
@@ -599,6 +613,10 @@ class Calibration(Mode):
                 mode.drawLightMarker(canvas)
             else:
                 mode.lightSeen = False
+        
+        if mode.fading:
+            canvas.create_image(0,0,image=ImageTk.PhotoImage(mode.fadeImgs[mode.fadeIndex]),
+                                anchor="nw")
     
     def drawUI(mode, canvas):
         f = "Teko 48 bold"
@@ -637,7 +655,7 @@ class Calibration(Mode):
         elif mode.cButtonHighlighted:
             mode.playClickSound()
             mode.cButtonHighlighted = False
-            mode.confirm()
+            mode.fadeOut()
     
     def drawBounds(mode, canvas):
         lines = [None]*4
@@ -693,6 +711,17 @@ class Calibration(Mode):
                 mode.cButtonHighlighted = False
         except:
             pass
+    
+    def fadeOut(mode):
+        #load faded images
+        mode.fadeImgs = []
+        mode.fadeFrames = 10
+        for i in range(mode.fadeFrames):
+            newIm = mode.fadeImg.copy()
+            newIm.putalpha(int((i+1)*255/(mode.fadeFrames)))
+            mode.fadeImgs.append(newIm)
+        mode.fadeConstant = 0
+        mode.fading = True
 
 class ModalApp(ModalApp):
     def appStarted(app):
@@ -753,5 +782,5 @@ def readFile(path):
     with open(path, "rt") as f:
         return f.read()
 
-ModalApp(width=1400,height=1000)
+ModalApp(width=1400,height=850)
 #Game(width=1200,height=800)
