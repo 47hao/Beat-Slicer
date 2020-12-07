@@ -1,4 +1,3 @@
-
 from cmu_112_graphics import *
 from PIL import ImageOps
 import grid3d
@@ -32,7 +31,7 @@ import threading
 class Game(Mode):
     def appStarted(app):
         app.running = True
-        app.debugMode = False
+        app.debugMode = True
         app.maxThreads = 4
         app.runThreads = True
 
@@ -252,22 +251,10 @@ class Game(Mode):
     def redrawAll(app, canvas):
         app.drawBackground(canvas)
         app.drawScore(canvas)
-        #app.drawGrid(canvas)
-        #canvas.create_rectangle(10,10,10+app.grid.cubeSize,10+app.grid.cubeSize)
         app.drawCubes(canvas)
         app.drawPolys(canvas)
-        #app.drawSlice(canvas)
         app.drawSparks(canvas)
         app.blade.draw(canvas)
-        #heck
-        if(app.debugMode):
-            app.drawReferenceMarker(canvas)
-
-    def drawReferenceMarker(app, canvas):
-        r = 10
-        (x,y) = app.playerPos
-        canvas.create_oval(x-r, y-r, x+r, y+r,
-                            fill = "red", outline = "")
 
     def drawCubes(app, canvas): #draw them in the right order
         color = rgbString(app.bgColor)
@@ -640,12 +627,6 @@ class Calibration(Mode):
     def confirm(mode):
         mode.app.cameraBounds = (mode.minX,mode.maxX,mode.minY,mode.maxY)
         mode.app.setActiveMode(mode.app.gameMode)
-
-    def keyPressed(mode, event):
-        if event.key == "Space":
-            mode.confirm()
-        else:
-            mode.resetBounds()
 
     def mousePressed(mode, event):
         if mode.rButtonHighlighted:

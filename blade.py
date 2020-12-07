@@ -45,7 +45,7 @@ class Spark(object):
         self.vel = vel
         self.time = 0
         self.dead = False
-        self.maxWidth = 8
+        self.maxWidth = 7
         self.stroke = 1
 
     def tick(self):
@@ -75,10 +75,10 @@ class Spark(object):
 
     @staticmethod
     def makeSparks(pos):
-        sparkMagnitude = 50
+        sparkMagnitude = 40
         (x,y) = pos
         sparks = []
-        for i in range(random.randint(12,18)):
+        for i in range(random.randint(24,32)):
             m = random.randint(sparkMagnitude//2, sparkMagnitude)
             angle = random.random()*2*math.pi
             dx,dy = math.cos(angle)*m,math.sin(angle)*m
