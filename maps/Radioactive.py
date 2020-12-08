@@ -16,7 +16,7 @@ def mirrored(beats):
     return result
 
 def getData():
-    return bpm, offset, beatMap(), fileName, songName, artist, 0
+    return bpm, offset, beatMap(), lighting(), fileName, songName, artist, 136
 #=============================================================================
 
 bpm = 136
@@ -25,9 +25,11 @@ fileName = "Radioactive.wav"
 songName = "Radioactive"
 artist = "Imagine Dragons"
 
+c1 = 68
+c2 = 100
+c3 = 132
+
 def beatMap():
-    c1 = 68
-    c2 = 100
     return [
         #intro section
         Beat(12,(1,1),'d'),
@@ -77,15 +79,45 @@ def beatMap():
     ] + ( downUps(c2, (2,1),4) + downUps(c2+4, (1,1),4) 
         + downUps(c2+8, (-1,1),4) + downUps(c2+12, (-2,1),4)
         + downUps(c2+16, (1,1),4) + downUps(c2+20, (-1,1),4)
-        ) + [
         #dotted quarter section
-        
+        ) + [ 
+        Beat(c2+24,(2,0),'r'),
+        Beat(c2+28,(-2,0),'l')
+    ] + [
+        Beat(c3,(2,1),'d')
+    ] + c3Pattern(c3) + c3Pattern(c3+8) + [
+        #chorus 3===================================================
     ]
 
-        #Beat(c2,(2,1),'d'),
-        #Beat(c2,(2,1),'u'),
-        #constant beats now
+def c3Pattern(s):
+    return [
+        Beat(s+2,(2,0),'u'),
+        
+        Beat(s+3,(1,-1),'l'),
+        Beat(s+3,(-1,-1),'l'),
+        Beat(s+4,(-2,1),'d'),
     
+        Beat(s+6,(-2,0),'u'),
+        
+        Beat(s+7,(-1,-1),'r'),
+        Beat(s+7,(1,-1),'r'),
+        Beat(s+8,(2,1),'d'),
+    ]
+
+def lighting():
+    return introDrumLighting(c1) + introDrumLighting(c2)
+
+def introDrumLighting(s):
+    return [
+        i for i in range(s,s+10,4)
+    ] + [
+        i for i in range(s+3,s+10,4)
+    ] + [s+12] + [
+        i for i in range(s+15,s+25,4)
+    ] + [
+        i for i in range(s+16,s+25,4)
+    ]
+
 def downUps(beat, pos, num):
     result = []
     for i in range(num):

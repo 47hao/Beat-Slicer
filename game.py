@@ -31,7 +31,7 @@ import threading
 class Game(Mode):
     def appStarted(app):
         app.running = True
-        app.debugMode = True
+        app.debugMode = False
         app.maxThreads = 4
         app.runThreads = True
 
@@ -48,7 +48,7 @@ class Game(Mode):
 
         app.beatCount = 0
         #number of beats a block spawns beforehand
-        app.preSpawnBeats = 6 #app.grid.startZ/app.cubeSpeed
+        app.preSpawnBeats = 6
 
         app.camThreshold = .9
         app.cam = camTracker.camTracker()
@@ -77,20 +77,20 @@ class Game(Mode):
         aThread = animationThread("aThread", app)
         aThread.start()
 
-
     def loadSong(app):
         songInfo = songMaps.getMap(app.app.song)
-        (bpm, delay, noteMap, fileName, songTitle, artist, startTime) = songInfo
+        (_, _, noteMap, lighting, _, songTitle, artist, _) = songInfo
         #pass info back to the game
         app.app.songTitle = songTitle
         app.app.artist = artist
 
         app.notes = dict()
-        #contents = readFile("maps/" + app.songName + ".py")
         data = noteMap
         for note in data:
             beat = note.beat
             app.notes[beat] = app.notes.get(beat,[]) + [note]
+        
+        app.lighting = set(lighting)
         app.playMusic(songInfo)
 
     def timerFired(app):
@@ -99,8 +99,6 @@ class Game(Mode):
             app.cleanCubes()
         app.blade.bladeStep()
         app.bladeSlice()
-        #if app.ticks%2 == 0:
-        #    app.sparkTick()
 
         if(app.debugMode):
             app.cam.showFrame()
@@ -116,13 +114,6 @@ class Game(Mode):
             if t.name == "camThread":
                 count += 1
         return count
-        
-    def testPoly(app):
-        testCube = cube.Cube((100,50,-20),(0,0,0),30)
-        points = testCube.getPoints()
-        points[3] = (0,-40,0)
-        poly = poly3d.Poly3d((100,50,-20),(0,0,-2),points)
-        app.polys.append(poly)
 
     def bladeSlice(app):
         for i in range(len(app.blade.points)-1):
@@ -244,6 +235,8 @@ class Game(Mode):
         if almostEquals(beat, int(beat)):
             pass
             print(beat)
+        if beat in app.lighting:# or int(beat) in app.lighting:
+            app.pulse()
         for cube in app.cubes:
             cube.updatePos(app.grid, beat)
         app.addCubes(beat)
@@ -708,7 +701,7 @@ class ModalApp(ModalApp):
     def appStarted(app):
         app.splashScreenMode = SplashScreen()
         app.calibrationMode = Calibration()
-        app.calibrate = True
+        app.calibrate = False
         app.cameraBounds = None
         app.song = "Radioactive"
         app.songOverMode = SongOver()
@@ -745,7 +738,6 @@ class animationThread(threading.Thread):
             self.game.cleanPolys()
             time.sleep(0.02)
             
-
 def almostEquals(a,b):
     epsilon = 10**-5
     if abs(a-b) <= epsilon:
