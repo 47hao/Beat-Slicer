@@ -22,3 +22,8 @@ LIBRARIES
 SHORTCUT COMMANDS
 
 None
+
+EASTER EGGS
+
+One
+https://youtu.be/YpNNFhSTxAY
