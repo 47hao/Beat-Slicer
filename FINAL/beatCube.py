@@ -1,5 +1,14 @@
 import cube
 import grid3d
+from cmu_112_graphics import *
+from PIL import Image
+
+
+BEETS = False
+#Beet image from: https://www.nicepng.com/ourpic/u2q8e6q8r5w7w7i1_beet-png-beetroot-transparent-background/
+if BEETS:
+    beetPic = Image.open("images/beet.png")
+    print("beets loaded")
 
 class BeatCube(cube.Cube):
     def __init__(self,grid,cubeParams,direction,targetBeat,preBeats):
@@ -54,6 +63,24 @@ class BeatCube(cube.Cube):
         #calculate reusable corners
         width = p1[0] - p0[0]
         m = width/6 #margin
+        
+        #meme time hehe
+        if BEETS:
+            #cap the size for when it flies by player
+            if width>beetPic.size[0]*2:
+                width = beetPic.size[0]*2
+            width = int(width)
+            im = beetPic.resize((width,width),resample=0)
+            if self.direction == "u":
+                im = im.rotate(180,resample=0)
+            elif self.direction == "l":
+                im = im.rotate(270,resample=0)
+            elif self.direction == "r":
+                im = im.rotate(90,resample=0)
+            (x,y) = p0
+            canvas.create_image((x,y),image=ImageTk.PhotoImage(im),anchor="nw")
+            return #dont draw the real arrow
+
         c0, c1 = (p0[0]+m,p0[1]+m),(p1[0]-m,p1[1]+m)
         c2, c3 = (p2[0]-m,p2[1]-m),(p3[0]+m,p3[1]-m)
         b = m/3 #arrow body height

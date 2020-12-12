@@ -16,7 +16,7 @@ def mirrored(beats):
     return result
 
 def getData():
-    return bpm, offset, beatMap(), lighting(), fileName, songName, artist, 56
+    return bpm, offset, beatMap(), lighting(), fileName, songName, artist, 0
 #=============================================================================
 
 #METRONOME 136BPM SOUND TAKEN FROM:
@@ -36,8 +36,10 @@ c3 = 132+64
 def beatMap():
     return [
     #demo section
+        Beat(18,(1,1),'r'),
         Beat(22,(1,1),'r'),
         Beat(26,(1,1),'r'),
+        Beat(34,(1,1),'r'),
         Beat(42,(-1,1),'l')
     ] + [
         #intro section

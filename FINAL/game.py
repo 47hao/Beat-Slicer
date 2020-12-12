@@ -323,6 +323,10 @@ class Game(Mode):
             #add point to blade
             app.blade.insertPoint((x,y))
 
+    def keyPressed(app, event):
+        if app.debugMode:
+            app.pulse()
+
     def closeApp(app):
         print("GAME SHUTDOWN")
         app.running = False
@@ -694,11 +698,12 @@ class Calibration(Mode):
 
 class ModalApp(ModalApp):
     def appStarted(app):
+        app.song = "Radioactive"
+        app.calibrate = True
+
         app.splashScreenMode = SplashScreen()
         app.calibrationMode = Calibration()
-        app.calibrate = True
         app.cameraBounds = None
-        app.song = "BlindingLights"
         app.songOverMode = SongOver()
         app.gameMode = Game()
         app.setActiveMode(app.splashScreenMode)
