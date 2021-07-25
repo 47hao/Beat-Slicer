@@ -1,4 +1,4 @@
-![alt text](https://github.com/47hao/Beat-Slicer/blob/main/thumbnail.png)
+[![alt text](https://github.com/47hao/Beat-Slicer/blob/main/thumbnail.png)](https://www.youtube.com/watch?v=RjHvfmKpxdg)
 
 BEAT SLICER - CMU 15-112 Fall 2020 Term Project
 
