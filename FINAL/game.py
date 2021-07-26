@@ -32,7 +32,7 @@ class Game(Mode):
     def appStarted(app):
         app.running = True
         app.debugMode = False
-        app.maxThreads = 4
+        app.maxThreads = 8
         app.runThreads = True
 
         app.focalLength = 600
@@ -48,7 +48,7 @@ class Game(Mode):
 
         app.beatCount = 0
         #number of beats a block spawns beforehand
-        app.preSpawnBeats = 6
+        app.preSpawnBeats = .5
 
         app.camThreshold = .9
         app.cam = camTracker.camTracker()
@@ -698,7 +698,7 @@ class Calibration(Mode):
 
 class ModalApp(ModalApp):
     def appStarted(app):
-        app.song = "Radioactive"
+        app.song = "BlindingLights"
         app.calibrate = True
 
         app.splashScreenMode = SplashScreen()
@@ -755,5 +755,5 @@ def readFile(path):
     with open(path, "rt") as f:
         return f.read()
 
-ModalApp(width=1200,height=800)
+ModalApp(width=1400,height=900)
 #Game(width=1200,height=800)
