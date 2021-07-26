@@ -48,7 +48,7 @@ class Game(Mode):
 
         app.beatCount = 0
         #number of beats a block spawns beforehand
-        app.preSpawnBeats = .5
+        app.preSpawnBeats = 4
 
         app.camThreshold = .9
         app.cam = camTracker.camTracker()
