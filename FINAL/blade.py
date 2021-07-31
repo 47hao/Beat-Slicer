@@ -32,8 +32,9 @@ class Blade(object):
     def draw(self, canvas):
         for i in range(len(self.points)-1):
             (x0,y0),(x1,y1) = self.points[i][0], self.points[i+1][0]
-            thickness = (len(self.points)-i)*2+4
-            canvas.create_line(x0,y0,x1,y1, width=thickness, fill="white")
+            s = (len(self.points)-i)*2+4
+            canvas.create_oval(x0-s//2, y0-s//2, x0+s//2, y0+s//2, fill = "black")
+            canvas.create_line(x0,y0,x1,y1, width=s, fill="white")
 
 class Spark(object):
     critPoint = 3
